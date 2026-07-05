@@ -181,6 +181,8 @@
     // once quoted, still allow editing the fee (but not shown again as the primary above)
     if ((o.status === "pending" && !o.awaiting_quote) || o.status === "proof")
       actions.push(`<button class="btn btn-ghost btn-sm" data-act="fee" data-id="${o.id}" data-fee="${o.shipping_fee}">Edit shipping fee</button>`);
+    // permanent delete (removes the record entirely) — available on any order
+    actions.push(`<button class="btn btn-ghost btn-sm" data-act="delete" data-id="${o.id}" style="opacity:.65">🗑 Delete</button>`);
 
     return `
       <div class="order-card">
@@ -237,6 +239,10 @@
             if (!confirm("Cancel this order and return its items to stock?")) return;
             await api(`/api/admin/orders/${id}/action`, { method: "POST", body: { action: "cancel" } });
             toast("Order cancelled — stock released.");
+          } else if (act === "delete") {
+            if (!confirm("Permanently DELETE this order and its records? This cannot be undone. (If it was still active, its items return to stock.)")) return;
+            await api(`/api/admin/orders/${id}/action`, { method: "POST", body: { action: "delete" } });
+            toast("Order deleted.");
           } else if (act === "track") {
             const t = prompt("Tracking number or tracking link (leave empty to remove):", b.dataset.tracking || "");
             if (t === null) return;

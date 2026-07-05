@@ -6,7 +6,7 @@
   <title>Your Order — WAVE3</title>
   <meta name="robots" content="noindex" />
   <link rel="stylesheet" href="/styles.css" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232b3cff'/%3E%3Cg transform='translate(22.5 17) scale(0.27) skewX(-28)' fill='white' stroke='white' stroke-width='8' stroke-linejoin='round'%3E%3Cpath d='M38 0H134V60H114V14H58V76H38Z'/%3E%3Cpath d='M96 98H0V40H20V84H76V22H96Z'/%3E%3C/g%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
   <style>
     .wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; }
     .order-head { text-align: center; padding: 24px 0 8px; }
@@ -86,12 +86,7 @@
     <div class="no-print" style="display:flex; align-items:center; justify-content:center; position:relative;">
       <a href="/" class="btn btn-ghost btn-sm" style="position:absolute; left:0;">← Store</a>
       <a href="/" class="logo-mark" aria-label="Back to WAVE3 store">
-        <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true">
-          <rect width="64" height="64" rx="14" fill="#2b3cff"/>
-          <g transform="translate(22.5 17) scale(0.27) skewX(-28)" fill="#fff" stroke="#fff" stroke-width="8" stroke-linejoin="round">
-            <path d="M38 0H134V60H114V14H58V76H38Z"/><path d="M96 98H0V40H20V84H76V22H96Z"/>
-          </g>
-        </svg>
+        <img src="/logo-mark.png" width="34" height="34" alt="WAVE3" style="display:block;object-fit:contain" />
         <span class="logo-text">WAVE<span class="three">3</span></span>
       </a>
     </div>
@@ -180,13 +175,8 @@
         <div class="receipt" id="receipt-card">
           <div class="paid-stamp">PAID</div>
           <div class="r-wave">
-            <svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true">
-              <rect width="64" height="64" rx="14" fill="#2b3cff"/>
-              <g transform="translate(22.5 17) scale(0.27) skewX(-28)" fill="#fff" stroke="#fff" stroke-width="8" stroke-linejoin="round">
-                <path d="M38 0H134V60H114V14H58V76H38Z"/><path d="M96 98H0V40H20V84H76V22H96Z"/>
-              </g>
-            </svg>
-            <span class="r-logo-text">WAVE<span class="three">3</span> <span style="font-size:13px; letter-spacing:0.2em; color:#888;">RECEIPT</span></span>
+            <img src="/logo.svg" width="52" height="52" alt="WAVE3" style="object-fit:contain" />
+            <span class="r-logo-text" style="font-size:14px; letter-spacing:0.2em; color:#888;">RECEIPT</span>
           </div>
           <p class="r-muted" style="margin-top:14px">
             Order <strong id="r-code" style="color:#111"></strong><br />

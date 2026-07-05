@@ -127,17 +127,10 @@
     render();
   }
 
-  $("#order-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const items = selectedItems();
-    if (items.length === 0) return toast("Pick a size and quantity first.", true);
+  const esc = (s) =>
+    String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-    const name = $("#f-name").value.trim();
-    const phone = $("#f-phone").value.trim();
-    const address = $("#f-address").value.trim();
-    if (!name || !phone || !address)
-      return toast("Please fill in your name, mobile number, and address.", true);
-
+  async function placeOrder(items, customer) {
     const btn = $("#submit-btn");
     btn.disabled = true;
     btn.textContent = "Placing order…";
@@ -145,16 +138,7 @@
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items,
-          customer: {
-            name,
-            phone,
-            address,
-            contact: $("#f-contact").value.trim(),
-            notes: $("#f-notes").value.trim()
-          }
-        })
+        body: JSON.stringify({ items, customer })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not place order.");
@@ -165,7 +149,49 @@
       btn.textContent = "Place order";
       load(); // refresh stock in case it changed
     }
+  }
+
+  $("#order-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const items = selectedItems();
+    if (items.length === 0) return toast("Pick a size and quantity first.", true);
+
+    const name = $("#f-name").value.trim();
+    const phone = $("#f-phone").value.trim();
+    const address = $("#f-address").value.trim();
+    if (!name || !phone || !address)
+      return toast("Please fill in your name, mobile number, and address.", true);
+    const customer = { name, phone, address, contact: $("#f-contact").value.trim(), notes: $("#f-notes").value.trim() };
+
+    // build the confirmation summary
+    const product = shop.products[0];
+    const fee = shop.settings.shipping_fee;
+    let itemsTotal = 0;
+    const lines = items
+      .map((it) => {
+        const v = product.variants.find((x) => x.id === it.variant_id);
+        itemsTotal += product.price * it.qty;
+        return `<div class="summary-line"><span class="muted">${esc(product.name)} — ${esc(v.size)} × ${it.qty}</span><span>${money(product.price * it.qty)}</span></div>`;
+      })
+      .join("");
+    $("#cf-items").innerHTML =
+      lines +
+      `<div class="summary-line"><span class="muted">Shipping</span><span>${fee > 0 ? money(fee) : "To be confirmed"}</span></div>` +
+      `<div class="summary-line summary-total"><span>Total</span><span>${money(itemsTotal + (fee > 0 ? fee : 0))}${fee > 0 ? "" : " + shipping"}</span></div>`;
+    $("#cf-details").innerHTML =
+      `<div><strong>${esc(name)}</strong></div>
+       <div class="muted small">${esc(phone)}</div>
+       <div class="muted small">${esc(address)}</div>` +
+      (customer.contact ? `<div class="muted small">${esc(customer.contact)}</div>` : "") +
+      (customer.notes ? `<div class="muted small">📝 ${esc(customer.notes)}</div>` : "");
+
+    $("#confirm-modal").classList.remove("hidden");
+    $("#cf-place").onclick = () => {
+      $("#confirm-modal").classList.add("hidden");
+      placeOrder(items, customer);
+    };
   });
+  $("#cf-edit").addEventListener("click", () => $("#confirm-modal").classList.add("hidden"));
 
   function goTrack() {
     // the W3- prefix is fixed in the UI; the input holds only the 6-char tail

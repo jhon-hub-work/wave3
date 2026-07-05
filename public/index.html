@@ -6,7 +6,7 @@
   <title>WAVE3 Collective — Official Store</title>
   <meta name="description" content="WAVE3 Collective embroidered tees. Built with purpose. Worn with pride. The movement continues." />
   <link rel="stylesheet" href="/styles.css" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232b3cff'/%3E%3Cg transform='translate(22.5 17) scale(0.27) skewX(-28)' fill='white' stroke='white' stroke-width='8' stroke-linejoin='round'%3E%3Cpath d='M38 0H134V60H114V14H58V76H38Z'/%3E%3Cpath d='M96 98H0V40H20V84H76V22H96Z'/%3E%3C/g%3E%3C/svg%3E" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
   <style>
     .topbar {
       position: sticky; top: 0; z-index: 50;
@@ -104,12 +104,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <span class="logo-mark">
-        <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true">
-          <rect width="64" height="64" rx="14" fill="#2b3cff"/>
-          <g transform="translate(22.5 17) scale(0.27) skewX(-28)" fill="#fff" stroke="#fff" stroke-width="8" stroke-linejoin="round">
-            <path d="M38 0H134V60H114V14H58V76H38Z"/><path d="M96 98H0V40H20V84H76V22H96Z"/>
-          </g>
-        </svg>
+        <img src="/logo-mark.png" width="34" height="34" alt="WAVE3" style="display:block;object-fit:contain" />
         <span class="logo-text">WAVE<span class="three">3</span></span>
       </span>
       <nav class="flex">
@@ -142,26 +137,9 @@
   <main class="container">
     <section class="shop-grid" id="shop">
       <div class="shirt-stage">
-        <svg viewBox="0 0 400 420" width="100%" role="img" aria-label="Wave 3 black embroidered t-shirt, front view">
-          <defs>
-            <linearGradient id="teeg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#1c1c26"/>
-              <stop offset="1" stop-color="#101018"/>
-            </linearGradient>
-          </defs>
-          <path d="M132 58 L74 84 L38 158 L92 186 L98 152 L98 366 Q200 388 302 366 L302 152 L308 186 L362 158 L326 84 L268 58 Q252 88 200 88 Q148 88 132 58 Z"
-                fill="url(#teeg)" stroke="#2a2a3e" stroke-width="2"/>
-          <path d="M132 58 Q148 88 200 88 Q252 88 268 58 Q252 74 200 74 Q148 74 132 58 Z" fill="#0c0c13" stroke="#2a2a3e" stroke-width="2"/>
-          <path d="M98 200 Q140 214 98 232" stroke="#22222f" stroke-width="1.5" fill="none"/>
-          <path d="M302 200 Q262 214 302 232" stroke="#22222f" stroke-width="1.5" fill="none"/>
-          <g transform="translate(228 124)">
-            <g transform="translate(12 0) scale(0.17) skewX(-28)" fill="#2b3cff" stroke="#2b3cff" stroke-width="8" stroke-linejoin="round">
-              <path d="M38 0H134V60H114V14H58V76H38Z"/>
-              <path d="M96 98H0V40H20V84H76V22H96Z"/>
-            </g>
-            <text x="19" y="34" text-anchor="middle" fill="#2b3cff" font-family="Epilogue, sans-serif" font-weight="800" font-size="10" letter-spacing="2">WAVE 3</text>
-          </g>
-        </svg>
+        <div style="aspect-ratio:5/4; overflow:hidden; border-radius:10px; background:#0a0a11;">
+          <img src="/tshirt.svg" alt="Wave 3 embroidered tee — front and back" style="width:100%; height:100%; object-fit:cover; display:block;" />
+        </div>
         <div class="fab-chips">
           <span class="chip">100% Cotton</span>
           <span class="chip">240 GSM Heavyweight</span>
@@ -248,6 +226,21 @@
       <p class="muted small mt-4">© <span id="year"></span> WAVE3 Collective — The movement continues.</p>
     </div>
   </footer>
+
+  <!-- ORDER CONFIRMATION MODAL -->
+  <div id="confirm-modal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,.78); z-index:200; display:flex; align-items:center; justify-content:center; padding:20px; overflow:auto;">
+    <div class="card" style="max-width:440px; width:100%; margin:auto;">
+      <p class="eyebrow">Confirm your order</p>
+      <h3 style="font-size:24px; margin:6px 0 14px;">Is everything correct?</h3>
+      <div id="cf-items" class="mb-2"></div>
+      <div id="cf-details" style="border-top:1px solid var(--border); padding-top:12px;"></div>
+      <p class="muted small mt-2">Please double-check — we ship to the address above.</p>
+      <div class="flex mt-3" style="gap:10px;">
+        <button class="btn btn-ghost" id="cf-edit" style="flex:1;">Go back &amp; edit</button>
+        <button class="btn btn-primary" id="cf-place" style="flex:1;">Confirm &amp; place</button>
+      </div>
+    </div>
+  </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="/js/shop.js"></script>

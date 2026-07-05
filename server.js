@@ -473,6 +473,22 @@ app.post("/api/admin/orders/:id/action", requireAdmin, wrap(async (req, res) => 
       try { await t.rollback(); } catch {}
       return res.status(500).json({ error: err.message });
     }
+  } else if (action === "delete") {
+    // permanently remove the order and all its records
+    const t = await db.tx();
+    try {
+      // return reserved stock only if this order still holds it (not shipped/cancelled/expired)
+      if (["pending", "proof", "paid"].includes(order.status)) await restockOrder(t, order.id);
+      await db.txRun(t, "DELETE FROM transactions WHERE order_id = ?", [order.id]);
+      await db.txRun(t, "DELETE FROM order_items WHERE order_id = ?", [order.id]);
+      await db.txRun(t, "DELETE FROM orders WHERE id = ?", [order.id]);
+      await t.commit();
+    } catch (err) {
+      try { await t.rollback(); } catch {}
+      return res.status(500).json({ error: err.message });
+    }
+    await db.deleteMedia(order.proof_file);
+    return res.json({ deleted: true });
   } else {
     return res.status(400).json({ error: "Unknown action." });
   }
