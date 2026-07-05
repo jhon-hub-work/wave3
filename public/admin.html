@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WAVE3 Admin</title>
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232b3cff'/%3E%3Cg transform='translate(22.5 17) scale(0.27) skewX(-28)' fill='white' stroke='white' stroke-width='8' stroke-linejoin='round'%3E%3Cpath d='M38 0H134V60H114V14H58V76H38Z'/%3E%3Cpath d='M96 98H0V40H20V84H76V22H96Z'/%3E%3C/g%3E%3C/svg%3E" />
+  <style>
+    body { display: flex; min-height: 100vh; }
+
+    /* login */
+    #login-screen {
+      position: fixed; inset: 0; background: var(--bg); z-index: 100;
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .login-card { width: 100%; max-width: 380px; text-align: center; }
+
+    /* layout */
+    .sidebar {
+      width: 224px; flex-shrink: 0; background: var(--bg-2); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; padding: 20px 12px; position: sticky; top: 0; height: 100vh;
+    }
+    .sidebar nav { display: flex; flex-direction: column; gap: 4px; margin-top: 28px; flex: 1; }
+    .nav-btn {
+      display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 10px;
+      background: none; border: none; color: var(--muted); font-family: var(--body);
+      font-size: 14px; font-weight: 600; cursor: pointer; text-align: left; width: 100%;
+      transition: background-color 0.15s, color 0.15s;
+    }
+    .nav-btn:hover { color: var(--text); background: var(--surface); }
+    .nav-btn.active { color: #fff; background: var(--blue); }
+    .nav-btn svg { flex-shrink: 0; }
+    .nav-badge {
+      margin-left: auto; background: var(--amber); color: #050508; font-size: 11px; font-weight: 800;
+      border-radius: 999px; padding: 1px 8px; min-width: 20px; text-align: center;
+    }
+    .nav-btn.active .nav-badge { background: #fff; }
+
+    main { flex: 1; padding: 28px 32px 80px; min-width: 0; }
+    .page-title { font-size: 30px; margin-bottom: 4px; }
+
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-top: 20px; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+    .stat .num { font-family: var(--display); font-size: 30px; margin-top: 2px; }
+    .stat .lbl { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted-2); }
+    .stat.blue .num { color: var(--blue-bright); }
+    .stat.green .num { color: var(--green); }
+    .stat.red .num { color: var(--red); }
+    .stat.amber .num { color: var(--amber); }
+
+    .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 18px 0; }
+    .tab {
+      background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+      padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .tab:hover { color: var(--text); border-color: var(--border-strong); }
+    .tab.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+    .order-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; margin-bottom: 12px; }
+    .order-card .head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .order-card .code { font-family: var(--display); font-size: 19px; letter-spacing: 0.03em; }
+    .order-card .when { margin-left: auto; font-size: 12px; color: var(--muted-2); }
+    .order-body { margin-top: 10px; display: grid; grid-template-columns: 1fr auto; gap: 16px; }
+    @media (max-width: 720px) { .order-body { grid-template-columns: 1fr; } }
+    .order-actions { display: flex; flex-direction: column; gap: 8px; align-items: stretch; min-width: 180px; }
+    .proof-thumb { max-width: 130px; border-radius: 8px; border: 1px solid var(--border-strong); cursor: pointer; transition: opacity 0.15s; }
+    .proof-thumb:hover { opacity: 0.85; }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 90;
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-backdrop img { max-width: 92vw; max-height: 88vh; border-radius: 10px; }
+
+    .inv-table input[type="number"] { width: 84px; padding: 8px 10px; font-size: 14px; }
+    .inv-table input[type="text"] { width: 70px; padding: 8px 10px; font-size: 14px; }
+
+    .tx-form { display: grid; grid-template-columns: 130px 1fr 150px 130px auto; gap: 10px; align-items: end; }
+    @media (max-width: 900px) { .tx-form { grid-template-columns: 1fr 1fr; } }
+
+    .money-pos { color: var(--green); font-weight: 700; }
+    .money-neg { color: var(--red); font-weight: 700; }
+
+    .channel-edit { border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; background: var(--bg-2); }
+
+    @media (max-width: 760px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; position: static; flex-direction: row; align-items: center; padding: 10px 12px; overflow-x: auto; }
+      .sidebar nav { flex-direction: row; margin-top: 0; }
+      .nav-btn span.lbl-txt { display: none; }
+      .sidebar .logo-mark .logo-text { display: none; }
+      #logout-btn { margin-left: auto; }
+      main { padding: 20px 16px 60px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div style="display:flex; justify-content:center; margin-bottom: 14px;">
+        <svg width="56" height="56" viewBox="0 0 64 64" aria-hidden="true">
+          <rect width="64" height="64" rx="14" fill="#2b3cff"/>
+          <g transform="translate(22.5 17) scale(0.27) skewX(-28)" fill="#fff" stroke="#fff" stroke-width="8" stroke-linejoin="round">
+            <path d="M38 0H134V60H114V14H58V76H38Z"/><path d="M96 98H0V40H20V84H76V22H96Z"/>
+          </g>
+        </svg>
+      </div>
+      <h1 style="font-size: 30px;">WAVE<span style="color:var(--blue-bright)">3</span> Admin</h1>
+      <p class="muted small mt-1 mb-2">Enter your admin password to manage orders, stock, and money.</p>
+      <form id="login-form">
+        <input type="password" id="login-pw" placeholder="Admin password" autocomplete="current-password" style="text-align:center;" />
+        <button type="submit" class="btn btn-primary mt-2" style="width:100%;">Log in</button>
+      </form>
+      <p class="muted small mt-2" id="login-hint">Default password: <span class="mono">wave3admin</span> — change it in Settings.</p>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <span class="logo-mark">
+      <svg width="32" height="32" viewBox="0 0 64 64" aria-hidden="true">
+        <rect width="64" height="64" rx="14" fill="#2b3cff"/>
+        <g transform="translate(22.5 17) scale(0.27) skewX(-28)" fill="#fff" stroke="#fff" stroke-width="8" stroke-linejoin="round">
+          <path d="M38 0H134V60H114V14H58V76H38Z"/><path d="M96 98H0V40H20V84H76V22H96Z"/>
+        </g>
+      </svg>
+      <span class="logo-text">WAVE<span class="three">3</span></span>
+    </span>
+    <nav>
+      <button class="nav-btn active" data-page="dashboard">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        <span class="lbl-txt">Dashboard</span>
+      </button>
+      <button class="nav-btn" data-page="orders">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        <span class="lbl-txt">Orders</span>
+        <span class="nav-badge hidden" id="orders-badge">0</span>
+      </button>
+      <button class="nav-btn" data-page="inventory">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        <span class="lbl-txt">Inventory</span>
+      </button>
+      <button class="nav-btn" data-page="money">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        <span class="lbl-txt">Money</span>
+      </button>
+      <button class="nav-btn" data-page="settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span class="lbl-txt">Settings</span>
+      </button>
+    </nav>
+    <button class="btn btn-ghost btn-sm" id="logout-btn">Log out</button>
+  </aside>
+
+  <main id="main">
+    <!-- DASHBOARD -->
+    <section id="page-dashboard">
+      <h1 class="page-title">Dashboard</h1>
+      <p class="muted small">What's happening in your shop right now.</p>
+      <div class="stat-grid" id="dash-stats"></div>
+      <div class="mt-3" id="dash-low-stock"></div>
+      <h3 style="font-size:20px" class="mt-3">Recent orders</h3>
+      <div class="mt-2" id="dash-recent"></div>
+    </section>
+
+    <!-- ORDERS -->
+    <section id="page-orders" class="hidden">
+      <div class="spread">
+        <div>
+          <h1 class="page-title">Orders</h1>
+          <p class="muted small">Verify payments, update shipping fees, and manage every order.</p>
+        </div>
+        <button class="btn btn-primary btn-sm" id="manual-order-btn">+ Manual order</button>
+      </div>
+      <div class="tabs" id="order-tabs">
+        <button class="tab active" data-status="">All</button>
+        <button class="tab" data-status="proof">To verify</button>
+        <button class="tab" data-status="pending">Awaiting payment</button>
+        <button class="tab" data-status="paid">Paid</button>
+        <button class="tab" data-status="shipped">Shipped</button>
+        <button class="tab" data-status="cancelled">Cancelled</button>
+        <button class="tab" data-status="expired">Expired</button>
+      </div>
+      <div id="orders-list"></div>
+    </section>
+
+    <!-- INVENTORY -->
+    <section id="page-inventory" class="hidden">
+      <div class="spread">
+        <div>
+          <h1 class="page-title">Inventory</h1>
+          <p class="muted small">Stock is reserved the moment an order comes in, and released automatically if the customer doesn't pay within the payment window.</p>
+        </div>
+        <button class="btn btn-primary btn-sm" id="add-product-btn">+ New product</button>
+      </div>
+      <div class="mt-3" id="inventory-list"></div>
+    </section>
+
+    <!-- MONEY -->
+    <section id="page-money" class="hidden">
+      <h1 class="page-title">Money</h1>
+      <p class="muted small">Sales are logged automatically when you mark orders paid. Add your expenses here.</p>
+      <div class="stat-grid" id="money-stats"></div>
+      <div class="card mt-3">
+        <h3 style="font-size:18px; margin-bottom: 12px;">Add a transaction</h3>
+        <form class="tx-form" id="tx-form">
+          <div>
+            <label class="field-label" for="tx-type">Type</label>
+            <select id="tx-type">
+              <option value="expense">Expense</option>
+              <option value="income">Income</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="tx-desc">Description</label>
+            <input type="text" id="tx-desc" placeholder="e.g. 50 blank shirts from supplier" maxlength="200" />
+          </div>
+          <div>
+            <label class="field-label" for="tx-cat">Category</label>
+            <select id="tx-cat">
+              <option>Supplies</option>
+              <option>Printing / Embroidery</option>
+              <option>Shipping</option>
+              <option>Marketing</option>
+              <option>Fees</option>
+              <option>Sales</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="tx-amount">Amount</label>
+            <input type="number" id="tx-amount" min="0.01" step="0.01" placeholder="0.00" />
+          </div>
+          <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+      </div>
+      <div class="card mt-3">
+        <div class="spread" style="flex-wrap:wrap; gap:10px;">
+          <h3 style="font-size:18px;">Report &amp; Export</h3>
+          <div class="flex" style="flex-wrap:wrap;">
+            <input type="date" id="rep-from" style="width:auto;" aria-label="Report from date" />
+            <span class="muted small">to</span>
+            <input type="date" id="rep-to" style="width:auto;" aria-label="Report to date" />
+            <button class="btn btn-ghost btn-sm" id="rep-run">Run report</button>
+          </div>
+        </div>
+        <div id="rep-out" class="mt-2"></div>
+        <div class="flex mt-2" style="flex-wrap:wrap;">
+          <a class="btn btn-ghost btn-sm" href="/api/admin/export/orders.csv" download>⬇ Export orders (Excel)</a>
+          <a class="btn btn-ghost btn-sm" href="/api/admin/export/transactions.csv" download>⬇ Export money records (Excel)</a>
+        </div>
+      </div>
+      <div class="card mt-3" style="padding: 8px 16px;">
+        <table class="w3" id="tx-table">
+          <thead><tr><th>Date</th><th>Category</th><th>Description</th><th style="text-align:right">Amount</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="page-settings" class="hidden">
+      <h1 class="page-title">Settings</h1>
+      <p class="muted small">Everything customers see on the store and payment pages.</p>
+
+      <div class="card mt-3">
+        <h3 style="font-size:18px; margin-bottom: 12px;">Store</h3>
+        <div class="field"><label class="field-label" for="s-name">Business name</label><input type="text" id="s-name" /></div>
+        <div class="field"><label class="field-label" for="s-tagline">Tagline</label><input type="text" id="s-tagline" /></div>
+        <div class="field">
+          <label class="field-label" for="s-shipping">Default shipping fee (0 = "to be confirmed", you set it per order)</label>
+          <input type="number" id="s-shipping" min="0" step="1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="s-window">Payment window (hours) — unpaid orders with no proof auto-expire and release their stock</label>
+          <input type="number" id="s-window" min="1" max="168" step="1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="s-note">Payment instructions note</label>
+          <textarea id="s-note"></textarea>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="spread mb-2">
+          <h3 style="font-size:18px;">Payment channels</h3>
+          <button class="btn btn-ghost btn-sm" id="add-channel-btn">+ Add channel</button>
+        </div>
+        <p class="muted small mb-2">Tip: upload the channel's QR code (GCash / Maya / bank app QR) — customers scan it instead of typing account numbers, so no wrong-account mistakes.</p>
+        <div id="channels-edit"></div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="spread mb-2">
+          <h3 style="font-size:18px;">Contact channels</h3>
+          <button class="btn btn-ghost btn-sm" id="add-contact-btn">+ Add contact</button>
+        </div>
+        <p class="muted small mb-2">Shown as "Message us" buttons on the store and on customers' order pages. Use any channel you like — Messenger (m.me/yourpage), Telegram (t.me/you), Instagram, WhatsApp, etc.</p>
+        <div id="contacts-edit"></div>
+      </div>
+
+      <button class="btn btn-primary mt-3" id="save-settings-btn" style="min-width: 220px;">Save all settings</button>
+
+      <div class="card mt-3">
+        <h3 style="font-size:18px; margin-bottom: 12px;">Change admin password</h3>
+        <div class="field"><label class="field-label" for="pw-current">Current password</label><input type="password" id="pw-current" autocomplete="current-password" /></div>
+        <div class="field"><label class="field-label" for="pw-next">New password (min 6 characters)</label><input type="password" id="pw-next" autocomplete="new-password" /></div>
+        <button class="btn btn-ghost" id="change-pw-btn">Change password</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- MANUAL ORDER MODAL -->
+  <div class="modal-backdrop hidden" id="manual-modal" style="align-items:flex-start; overflow:auto; padding: 32px 16px;">
+    <div class="card" style="max-width: 560px; width: 100%; margin: auto; cursor: auto;">
+      <div class="spread mb-2">
+        <h3 style="font-size: 20px;">Add manual order</h3>
+        <button class="btn btn-ghost btn-sm" id="mo-close">Close</button>
+      </div>
+      <p class="muted small mb-2">For walk-in / DM sales, or past orders made before this system existed.</p>
+      <div class="field"><label class="field-label" for="mo-name">Customer name *</label><input type="text" id="mo-name" maxlength="120" /></div>
+      <div class="field"><label class="field-label" for="mo-phone">Mobile number (optional)</label><input type="tel" id="mo-phone" maxlength="40" /></div>
+      <div class="field"><label class="field-label" for="mo-address">Address (optional)</label><textarea id="mo-address" style="min-height:56px" maxlength="500"></textarea></div>
+      <div class="field"><label class="field-label">Items *</label><div id="mo-items" class="small muted">Loading products…</div></div>
+      <div class="field"><label class="field-label" for="mo-fee">Shipping fee</label><input type="number" id="mo-fee" value="0" min="0" step="1" /></div>
+      <div class="field"><label class="field-label" for="mo-date">Sale date</label><input type="date" id="mo-date" /></div>
+      <label class="flex small mb-2" style="cursor:pointer;"><input type="checkbox" id="mo-paid" checked style="width:auto;" /> Already paid — logs the income and makes the receipt available</label>
+      <label class="flex small mb-2" style="cursor:pointer; align-items:flex-start;" id="mo-deduct-row"><input type="checkbox" id="mo-deduct" checked style="width:auto; margin-top:3px;" /> <span>Deduct these items from current stock<br /><span class="muted">Untick for OLD orders — if your stock count was set after that sale, the shirts are already counted out.</span></span></label>
+      <button class="btn btn-primary" id="mo-save" style="width:100%;">Add order</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

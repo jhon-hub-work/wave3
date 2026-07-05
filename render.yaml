@@ -1,0 +1,15 @@
+# Render Blueprint — lets Render auto-configure the Wave3 web service.
+# You still enter the two secret-ish values (DATABASE_URL, DATABASE_AUTH_TOKEN)
+# in the Render dashboard because they are marked sync:false.
+services:
+  - type: web
+    name: wave3
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_AUTH_TOKEN
+        sync: false

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WAVE3 Collective — Official Store</title>
+  <meta name="description" content="WAVE3 Collective embroidered tees. Built with purpose. Worn with pride. The movement continues." />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232b3cff'/%3E%3Cg transform='translate(22.5 17) scale(0.27) skewX(-28)' fill='white' stroke='white' stroke-width='8' stroke-linejoin='round'%3E%3Cpath d='M38 0H134V60H114V14H58V76H38Z'/%3E%3Cpath d='M96 98H0V40H20V84H76V22H96Z'/%3E%3C/g%3E%3C/svg%3E" />
+  <style>
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(5,5,8,0.85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; max-width: 1120px; margin: 0 auto; }
+
+    .hero { padding: 88px 0 64px; position: relative; overflow: hidden; }
+    .hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 50% at 70% 10%, rgba(43,60,255,0.16), transparent 70%);
+      pointer-events: none;
+    }
+    .hero h1 { font-size: clamp(52px, 9vw, 118px); color: var(--text); }
+    .hero h1 .accent { color: var(--blue-bright); text-shadow: 0 0 24px var(--blue-glow); }
+    .hero-sub { max-width: 460px; color: var(--muted); margin-top: 18px; font-size: 17px; }
+    .hero-taglines { display: flex; flex-direction: column; gap: 2px; margin-top: 26px; font-family: var(--display); font-size: 19px; letter-spacing: 0.04em; text-transform: uppercase; }
+    .hero-taglines .blue { color: var(--blue-bright); }
+
+    .marquee { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); overflow: hidden; padding: 12px 0; background: var(--bg-2); }
+    .marquee-track { display: flex; gap: 48px; white-space: nowrap; font-family: var(--display); font-size: 14px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--muted-2); animation: scroll 30s linear infinite; width: max-content; }
+    @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .marquee-track .dot { color: var(--blue); }
+
+    .shop-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 44px; padding: 64px 0; align-items: start; }
+    @media (max-width: 900px) { .shop-grid { grid-template-columns: 1fr; } }
+
+    .shirt-stage {
+      background: linear-gradient(180deg, var(--surface) 0%, var(--bg-2) 100%);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 36px 24px; position: sticky; top: 90px;
+    }
+    @media (max-width: 900px) { .shirt-stage { position: static; } }
+    .fab-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .chip { font-size: 12px; font-weight: 600; color: var(--muted); border: 1px solid var(--border-strong); padding: 5px 12px; border-radius: 999px; }
+
+    .price-row { display: flex; align-items: baseline; gap: 12px; margin: 10px 0 4px; }
+    .price { font-family: var(--display); font-size: 46px; color: var(--text); }
+    .price-note { color: var(--gold); font-weight: 700; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+
+    .size-rows { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .size-row {
+      display: grid; grid-template-columns: 52px 1fr auto auto; gap: 12px; align-items: center;
+      background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px;
+      transition: border-color 0.2s;
+    }
+    .size-row.selected { border-color: var(--blue); }
+    .size-row.soldout { opacity: 0.45; }
+    .size-label { font-family: var(--display); font-size: 20px; }
+    .size-meta { font-size: 12px; color: var(--muted-2); }
+    .stock-note { font-size: 12px; font-weight: 700; }
+    .stock-ok { color: var(--muted); }
+    .stock-low { color: var(--amber); }
+    .stock-out { color: var(--red); }
+    .qty-stepper { display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: 8px; overflow: hidden; }
+    .qty-stepper button {
+      width: 38px; height: 38px; background: var(--surface-2); color: var(--text);
+      border: none; font-size: 17px; cursor: pointer; transition: background-color 0.15s;
+    }
+    .qty-stepper button:hover:not(:disabled) { background: var(--blue-dim); }
+    .qty-stepper button:disabled { opacity: 0.35; cursor: not-allowed; }
+    .qty-stepper .qty { width: 38px; text-align: center; font-weight: 700; font-size: 15px; }
+
+    .summary-line { display: flex; justify-content: space-between; font-size: 15px; padding: 6px 0; }
+    .summary-total { font-family: var(--display); font-size: 24px; }
+
+    details.size-chart { border: 1px solid var(--border); border-radius: 10px; margin-top: 18px; background: var(--bg-2); }
+    details.size-chart summary { cursor: pointer; padding: 12px 16px; font-weight: 700; font-size: 14px; color: var(--muted); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+    details.size-chart summary::after { content: '+'; font-size: 18px; color: var(--blue-bright); }
+    details.size-chart[open] summary::after { content: '–'; }
+    details.size-chart .inner { padding: 0 8px 8px; overflow-x: auto; }
+
+    .payment-strip { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+
+    footer { border-top: 1px solid var(--border); margin-top: 60px; padding: 40px 0 60px; }
+    .track-box { display: flex; gap: 10px; max-width: 420px; margin-top: 12px; }
+    .track-field { display: flex; flex: 1; }
+    .track-prefix {
+      display: flex; align-items: center; padding: 0 12px 0 14px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-right: none; border-radius: 10px 0 0 10px;
+      font-family: var(--display); font-size: 16px; letter-spacing: 0.08em;
+      color: var(--blue-bright); user-select: none;
+    }
+    .track-field input {
+      text-transform: uppercase; border-radius: 0 10px 10px 0;
+      letter-spacing: 0.15em; font-weight: 700;
+    }
+
+    .order-panel { scroll-margin-top: 90px; }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <span class="logo-mark">
+        <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true">
+          <rect width="64" height="64" rx="14" fill="#2b3cff"/>
+          <g transform="translate(22.5 17) scale(0.27) skewX(-28)" fill="#fff" stroke="#fff" stroke-width="8" stroke-linejoin="round">
+            <path d="M38 0H134V60H114V14H58V76H38Z"/><path d="M96 98H0V40H20V84H76V22H96Z"/>
+          </g>
+        </svg>
+        <span class="logo-text">WAVE<span class="three">3</span></span>
+      </span>
+      <nav class="flex">
+        <a class="btn btn-ghost btn-sm" href="#track">Track order</a>
+        <a class="btn btn-primary btn-sm" href="#shop">Order now</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <p class="eyebrow">Wave3 Collective</p>
+      <h1>T-Shirt<br /><span class="accent">Available.</span></h1>
+      <div class="hero-taglines">
+        <span>Built with purpose.</span>
+        <span>Worn with pride.</span>
+        <span class="blue" id="tagline">The movement continues.</span>
+      </div>
+      <p class="hero-sub">Premium embroidered heavyweight tees. Limited stock — first paid, first served. No reservations.</p>
+      <div class="mt-3">
+        <a class="btn btn-primary" href="#shop">Shop the drop</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track" id="marquee"></div>
+  </div>
+
+  <main class="container">
+    <section class="shop-grid" id="shop">
+      <div class="shirt-stage">
+        <svg viewBox="0 0 400 420" width="100%" role="img" aria-label="Wave 3 black embroidered t-shirt, front view">
+          <defs>
+            <linearGradient id="teeg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#1c1c26"/>
+              <stop offset="1" stop-color="#101018"/>
+            </linearGradient>
+          </defs>
+          <path d="M132 58 L74 84 L38 158 L92 186 L98 152 L98 366 Q200 388 302 366 L302 152 L308 186 L362 158 L326 84 L268 58 Q252 88 200 88 Q148 88 132 58 Z"
+                fill="url(#teeg)" stroke="#2a2a3e" stroke-width="2"/>
+          <path d="M132 58 Q148 88 200 88 Q252 88 268 58 Q252 74 200 74 Q148 74 132 58 Z" fill="#0c0c13" stroke="#2a2a3e" stroke-width="2"/>
+          <path d="M98 200 Q140 214 98 232" stroke="#22222f" stroke-width="1.5" fill="none"/>
+          <path d="M302 200 Q262 214 302 232" stroke="#22222f" stroke-width="1.5" fill="none"/>
+          <g transform="translate(228 124)">
+            <g transform="translate(12 0) scale(0.17) skewX(-28)" fill="#2b3cff" stroke="#2b3cff" stroke-width="8" stroke-linejoin="round">
+              <path d="M38 0H134V60H114V14H58V76H38Z"/>
+              <path d="M96 98H0V40H20V84H76V22H96Z"/>
+            </g>
+            <text x="19" y="34" text-anchor="middle" fill="#2b3cff" font-family="Epilogue, sans-serif" font-weight="800" font-size="10" letter-spacing="2">WAVE 3</text>
+          </g>
+        </svg>
+        <div class="fab-chips">
+          <span class="chip">100% Cotton</span>
+          <span class="chip">240 GSM Heavyweight</span>
+          <span class="chip">Pro Club Fit</span>
+          <span class="chip">Pre-shrunk</span>
+          <span class="chip">Embroidered</span>
+        </div>
+      </div>
+
+      <div class="order-panel">
+        <p class="eyebrow">Limited stock — don't miss out</p>
+        <h2 style="font-size: clamp(30px, 4.5vw, 44px); margin-top: 8px;" id="product-name">Wave 3 Embroidered Tee</h2>
+        <div class="price-row">
+          <span class="price" id="product-price">₱999</span>
+          <span class="price-note">+ shipping fee</span>
+        </div>
+        <p class="muted small" id="product-desc"></p>
+
+        <h3 style="font-size: 20px; margin-top: 26px;">Size &amp; Quantity</h3>
+        <div class="size-rows" id="size-rows"></div>
+
+        <details class="size-chart">
+          <summary>Size chart (inches, tolerance ±1")</summary>
+          <div class="inner">
+            <table class="w3" id="size-chart-table">
+              <thead><tr><th>Size</th><th>Length</th><th>Width</th><th>Sleeves</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </details>
+
+        <div class="card mt-3">
+          <div class="summary-line"><span class="muted">Items</span><span id="sum-items">—</span></div>
+          <div class="summary-line"><span class="muted">Shipping</span><span id="sum-shipping">To be confirmed</span></div>
+          <div class="summary-line summary-total"><span>Total</span><span id="sum-total">₱0</span></div>
+        </div>
+
+        <form id="order-form" class="mt-3" novalidate>
+          <h3 style="font-size: 20px; margin-bottom: 14px;">Your details</h3>
+          <div class="field">
+            <label class="field-label" for="f-name">Full name *</label>
+            <input type="text" id="f-name" autocomplete="name" required maxlength="120" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="f-phone">Mobile number *</label>
+            <input type="tel" id="f-phone" autocomplete="tel" required maxlength="40" placeholder="09XX XXX XXXX" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="f-address">Complete delivery address *</label>
+            <textarea id="f-address" required maxlength="500" placeholder="House/Unit, Street, Barangay, City, Province, ZIP"></textarea>
+          </div>
+          <div class="field">
+            <label class="field-label" for="f-contact">Facebook / Instagram (optional)</label>
+            <input type="text" id="f-contact" maxlength="120" placeholder="So we can reach you faster" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="f-notes">Notes (optional)</label>
+            <textarea id="f-notes" maxlength="500" placeholder="Anything we should know?"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" id="submit-btn" style="width: 100%; font-size: 17px; padding: 16px;">
+            Place order
+          </button>
+          <p class="muted small mt-1" style="text-align:center">After ordering you'll get your payment instructions and a private order link.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer id="track">
+    <div class="container">
+      <h3 style="font-size: 22px;">Track your order</h3>
+      <p class="muted small">Enter the order code from your confirmation (e.g. W3-ABC123).</p>
+      <div class="track-box">
+        <div class="track-field">
+          <span class="track-prefix" aria-hidden="true">W3-</span>
+          <input type="text" id="track-input" placeholder="ABC123" maxlength="6" aria-label="Order code, 6 characters after W3-" />
+        </div>
+        <button class="btn btn-ghost" id="track-btn">Track</button>
+      </div>
+      <div id="contact-box" class="hidden mt-3">
+        <h3 style="font-size: 18px;">Message us</h3>
+        <div class="flex mt-1" id="contact-row" style="flex-wrap:wrap;"></div>
+      </div>
+      <p class="muted small mt-4">© <span id="year"></span> WAVE3 Collective — The movement continues.</p>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/js/shop.js"></script>
+</body>
+</html>
