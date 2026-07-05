@@ -433,6 +433,14 @@ app.post("/api/admin/orders/:id/action", requireAdmin, wrap(async (req, res) => 
          VALUES ('income', 'Sales', ?, ?, ?)`,
         [`Order ${order.code} — ${order.customer_name}`, full.total, order.id]
       );
+      // auto-log THIS order's shipping as an expense (what you pay the courier)
+      if (order.shipping_fee > 0)
+        await db.txRun(
+          t,
+          `INSERT INTO transactions (type, category, description, amount, order_id)
+           VALUES ('expense', 'Shipping', ?, ?, ?)`,
+          [`Order ${order.code} — shipping cost`, order.shipping_fee, order.id]
+        );
       await t.commit();
     } catch (err) {
       try { await t.rollback(); } catch {}
@@ -581,6 +589,14 @@ app.post("/api/admin/manual-order", requireAdmin, wrap(async (req, res) => {
          VALUES ('income', 'Sales', ?, ?, ?, COALESCE(?, date('now')))`,
         [`Order ${code} — ${name} (manual)`, itemsTotal + fee, orderId, date]
       );
+      // auto-log this order's shipping cost as an expense on the same date
+      if (fee > 0)
+        await db.txRun(
+          t,
+          `INSERT INTO transactions (type, category, description, amount, order_id, tx_date)
+           VALUES ('expense', 'Shipping', ?, ?, ?, COALESCE(?, date('now')))`,
+          [`Order ${code} — shipping cost`, fee, orderId, date]
+        );
     }
     await t.commit();
     res.json({ code });
