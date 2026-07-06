@@ -16,7 +16,7 @@
   let pendingImage = null;
 
   const money = (n) =>
-    currency + Number(n).toLocaleString("en-PH", { maximumFractionDigits: 2 });
+    currency + (currency.length > 1 ? " " : "") + Number(n).toLocaleString("en-PH", { maximumFractionDigits: 2 });
 
   const STEPS = [
     { key: "placed", label: "Order placed" },

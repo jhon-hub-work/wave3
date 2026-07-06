@@ -13,7 +13,7 @@
 
   let currency = "₱";
   const money = (n) =>
-    currency + Number(n).toLocaleString("en-PH", { maximumFractionDigits: 2 });
+    currency + (currency.length > 1 ? " " : "") + Number(n).toLocaleString("en-PH", { maximumFractionDigits: 2 });
 
   const esc = (s) =>
     String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -315,6 +315,9 @@
         <div class="flex mt-2" style="flex-wrap:wrap;">
           <button class="btn btn-ghost btn-sm p-add-size">+ Add size</button>
           <button class="btn btn-primary btn-sm p-save">Save product</button>
+          ${p.image ? `<img src="/media/${esc(p.image)}" alt="Product photo" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--border-strong);" />
+            <button class="btn btn-danger btn-sm p-photo-remove">Remove photo</button>` : ""}
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer;">${p.image ? "Replace" : "+ Upload"} product photo<input type="file" class="p-photo-file hidden" accept="image/png,image/jpeg,image/webp" /></label>
         </div>
       </div>`
       )
@@ -354,6 +357,30 @@
           toast(err.message, true);
         }
       });
+      const photoFile = card.querySelector(".p-photo-file");
+      photoFile.addEventListener("change", () => {
+        const file = photoFile.files[0];
+        if (!file) return;
+        if (file.size > 8 * 1024 * 1024) return toast("Image too large (max 8 MB).", true);
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            await api(`/api/admin/products/${pid}/photo`, { method: "POST", body: { image: reader.result } });
+            toast("Product photo updated — it's live on the store.");
+            loadInventory();
+          } catch (err) {
+            toast(err.message, true);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+      const photoRemove = card.querySelector(".p-photo-remove");
+      if (photoRemove)
+        photoRemove.addEventListener("click", async () => {
+          if (!confirm("Remove this product's photo?")) return;
+          await api(`/api/admin/products/${pid}/photo`, { method: "POST", body: { image: "" } });
+          loadInventory();
+        });
       card.querySelector(".p-add-size").addEventListener("click", async () => {
         const size = prompt("New size name (e.g. 2XL):");
         if (!size) return;
@@ -511,9 +538,10 @@
     runReport().catch(() => {});
     const d = await api("/api/admin/transactions");
     $("#money-stats").innerHTML = `
-      <div class="stat green"><div class="lbl">Total income</div><div class="num">${money(d.income)}</div></div>
-      <div class="stat red"><div class="lbl">Total expenses</div><div class="num">${money(d.expense)}</div></div>
-      <div class="stat ${d.profit >= 0 ? "green" : "red"}"><div class="lbl">Profit</div><div class="num">${money(d.profit)}</div></div>`;
+      <div class="stat green"><div class="lbl">Merch Sales</div><div class="num">${money(d.merch_sales)}</div></div>
+      <div class="stat blue"><div class="lbl">Shipping Fee Collected</div><div class="num">${money(d.shipping_collected)}</div></div>
+      <div class="stat red"><div class="lbl">Total Expenses</div><div class="num">${money(d.expense)}</div></div>
+      <div class="stat ${d.profit >= 0 ? "green" : "red"}"><div class="lbl">Net Profit</div><div class="num">${money(d.profit)}</div></div>`;
     $("#tx-table tbody").innerHTML =
       d.transactions
         .map(
@@ -680,6 +708,7 @@
 
   async function loadSettings() {
     const d = await api("/api/admin/settings");
+    $("#s-currency").value = d.settings.currency || "₱";
     $("#s-name").value = d.settings.business_name;
     $("#s-tagline").value = d.settings.tagline;
     $("#s-shipping").value = d.settings.shipping_fee;
@@ -699,6 +728,7 @@
         method: "POST",
         body: {
           business_name: $("#s-name").value,
+          currency: $("#s-currency").value,
           tagline: $("#s-tagline").value,
           shipping_fee: Number($("#s-shipping").value),
           payment_window_hours: Number($("#s-window").value),
@@ -730,6 +760,10 @@
 
   // ---------- boot & polling ----------
   async function boot() {
+    // pick up the configured currency for all money displays
+    api("/api/admin/settings")
+      .then((d) => { currency = d.settings.currency || "₱"; })
+      .catch(() => {});
     loadPage();
   }
 

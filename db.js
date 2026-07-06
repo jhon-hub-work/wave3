@@ -230,7 +230,9 @@ async function init() {
     // quoted_at: when the total (incl. shipping) was confirmed. The payment
     // countdown runs from here, NOT from order time — so it never starts while
     // the customer is still waiting to know their shipping fee.
-    "ALTER TABLE orders ADD COLUMN quoted_at TEXT"
+    "ALTER TABLE orders ADD COLUMN quoted_at TEXT",
+    // product photo (a media id), uploadable from the dashboard
+    "ALTER TABLE products ADD COLUMN image TEXT"
   ]) {
     try {
       await client.execute(alter);

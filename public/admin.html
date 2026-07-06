@@ -262,6 +262,14 @@
         <div class="field"><label class="field-label" for="s-name">Business name</label><input type="text" id="s-name" /></div>
         <div class="field"><label class="field-label" for="s-tagline">Tagline</label><input type="text" id="s-tagline" /></div>
         <div class="field">
+          <label class="field-label" for="s-currency">Currency (display only — prices don't auto-convert)</label>
+          <select id="s-currency">
+            <option value="₱">PHP (₱)</option>
+            <option value="$">USD ($)</option>
+            <option value="USDT">USDT</option>
+          </select>
+        </div>
+        <div class="field">
           <label class="field-label" for="s-shipping">Default shipping fee (0 = "to be confirmed", you set it per order)</label>
           <input type="number" id="s-shipping" min="0" step="1" />
         </div>

@@ -15,7 +15,7 @@
   let currency = "₱";
 
   const money = (n) =>
-    currency + Number(n).toLocaleString("en-PH", { maximumFractionDigits: 2 });
+    currency + (currency.length > 1 ? " " : "") + Number(n).toLocaleString("en-PH", { maximumFractionDigits: 2 });
 
   function stockNote(stock) {
     if (stock <= 0) return '<span class="stock-note stock-out">SOLD OUT</span>';
@@ -28,6 +28,8 @@
     if (!product) return;
     currency = shop.settings.currency || "₱";
 
+    // uploaded product photo (falls back to the bundled tshirt.svg)
+    if (product.image) $("#product-photo").src = "/media/" + encodeURIComponent(product.image);
     $("#product-name").textContent = product.name;
     $("#product-price").textContent = money(product.price);
     $("#product-desc").textContent = product.description;

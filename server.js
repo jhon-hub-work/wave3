@@ -195,12 +195,14 @@ app.get("/api/shop", wrap(async (req, res) => {
   res.json({ settings: await publicSettings(), products, contacts: await contactChannels() });
 }));
 
-// payment QR codes are public — customers need them to pay
-app.get("/qr/:id", wrap(async (req, res) => {
+// public media: payment QR codes + product photos (ids are unguessable)
+const servePublicMedia = wrap(async (req, res) => {
   const id = String(req.params.id);
   if (!/^m[0-9a-f]+$/.test(id)) return res.status(404).end();
   sendMedia(res, await db.getMedia(id), true);
-}));
+});
+app.get("/qr/:id", servePublicMedia);
+app.get("/media/:id", servePublicMedia);
 
 app.post("/api/orders", wrap(async (req, res) => {
   const { customer, items } = req.body || {};
@@ -714,6 +716,26 @@ app.post("/api/admin/products", requireAdmin, wrap(async (req, res) => {
   }
 }));
 
+// upload / replace / remove a product photo (stored in the DB like QRs)
+app.post("/api/admin/products/:id/photo", requireAdmin, wrap(async (req, res) => {
+  const p = await db.get("SELECT * FROM products WHERE id = ?", [Number(req.params.id)]);
+  if (!p) return res.status(404).json({ error: "Product not found." });
+  const image = String((req.body || {}).image || "");
+  if (!image) {
+    await db.deleteMedia(p.image);
+    await db.run("UPDATE products SET image = NULL WHERE id = ?", [p.id]);
+    return res.json({ ok: true });
+  }
+  const m = image.match(/^data:image\/(png|jpe?g|webp);base64,(.+)$/);
+  if (!m) return res.status(400).json({ error: "Please upload a PNG, JPG, or WEBP image." });
+  if (Buffer.from(m[2], "base64").length > 8 * 1024 * 1024)
+    return res.status(400).json({ error: "Image too large (max 8 MB)." });
+  const id = await db.saveMedia(image);
+  await db.deleteMedia(p.image);
+  await db.run("UPDATE products SET image = ? WHERE id = ?", [id, p.id]);
+  res.json({ image: id });
+}));
+
 app.post("/api/admin/variants", requireAdmin, wrap(async (req, res) => {
   const { id, product_id, size, stock, length_in, width_in, sleeves_in } = req.body || {};
   const st = Math.floor(Number(stock));
@@ -755,7 +777,20 @@ app.get("/api/admin/transactions", requireAdmin, wrap(async (req, res) => {
        COALESCE(SUM(CASE WHEN type='expense' THEN amount END), 0) AS expense
      FROM transactions`
   );
-  res.json({ transactions: rows, income: money.income, expense: money.expense, profit: money.income - money.expense });
+  // shipping portion of collected income (per-order fee, only orders whose income is logged)
+  const ship = await db.get(
+    `SELECT COALESCE(SUM(o.shipping_fee), 0) AS s
+     FROM transactions t JOIN orders o ON o.id = t.order_id
+     WHERE t.type = 'income'`
+  );
+  res.json({
+    transactions: rows,
+    income: money.income,
+    expense: money.expense,
+    profit: money.income - money.expense,
+    shipping_collected: ship.s,
+    merch_sales: money.income - ship.s
+  });
 }));
 
 app.post("/api/admin/transactions", requireAdmin, wrap(async (req, res) => {
@@ -864,9 +899,30 @@ app.post("/api/admin/password", requireAdmin, wrap(async (req, res) => {
 app.get("/order/:code", (req, res) => res.sendFile(path.join(__dirname, "public", "order.html")));
 app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
 
+// one-time repair, every boot (idempotent): any paid/shipped order missing its
+// auto shipping expense gets it logged, dated to when it was paid
+async function backfillShippingExpenses() {
+  const rows = await db.all(
+    `SELECT o.id, o.code, o.shipping_fee, o.paid_at FROM orders o
+     WHERE o.status IN ('paid','shipped') AND o.shipping_fee > 0
+       AND NOT EXISTS (
+         SELECT 1 FROM transactions t
+         WHERE t.order_id = o.id AND t.type = 'expense' AND t.category = 'Shipping'
+       )`
+  );
+  for (const o of rows)
+    await db.run(
+      `INSERT INTO transactions (type, category, description, amount, order_id, tx_date)
+       VALUES ('expense', 'Shipping', ?, ?, ?, COALESCE(date(?), date('now')))`,
+      [`Order ${o.code} — shipping cost`, o.shipping_fee, o.id, o.paid_at]
+    );
+  if (rows.length) console.log(`Backfilled shipping expenses for ${rows.length} order(s).`);
+}
+
 // ---------- boot ----------
 db.init()
   .then(() => {
+    backfillShippingExpenses().catch((e) => console.error("backfill:", e));
     // sweep expired orders every 5 minutes
     setInterval(() => expireStaleOrders().catch((e) => console.error("expire sweep:", e)), 5 * 60 * 1000);
     app.listen(PORT, () => {
