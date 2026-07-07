@@ -14,8 +14,23 @@
   const qty = new Map(); // variant_id -> qty
   let currency = "₱";
 
-  const money = (n) =>
-    currency + (currency.length > 1 ? " " : "") + Number(n).toLocaleString("en-PH", { maximumFractionDigits: 2 });
+  // customer currency: prices are stored in the base currency; the shopper's
+  // pick converts on the fly with live rates (fx = units per 1 USD)
+  const CURS = { PHP: "₱", USD: "$", USDT: "USDT " };
+  const symToCode = (s) => (s === "$" ? "USD" : s === "USDT" ? "USDT" : "PHP");
+  let baseCode = "PHP";
+  let fx = { PHP: 58, USD: 1, USDT: 1 };
+  let viewCode = localStorage.getItem("w3cur");
+
+  const money = (n) => {
+    const v = viewCode && CURS[viewCode] ? viewCode : baseCode;
+    const amt = v === baseCode ? Number(n) : (Number(n) / fx[baseCode]) * fx[v];
+    const str = amt.toLocaleString("en-PH", {
+      maximumFractionDigits: 2,
+      minimumFractionDigits: v === "PHP" ? 0 : 2
+    });
+    return (v !== baseCode ? "≈" : "") + CURS[v] + str;
+  };
 
   function stockNote(stock) {
     if (stock <= 0) return '<span class="stock-note stock-out">SOLD OUT</span>';
@@ -27,6 +42,9 @@
     const product = shop.products[0];
     if (!product) return;
     currency = shop.settings.currency || "₱";
+    baseCode = symToCode(currency);
+    if (shop.settings.fx) fx = shop.settings.fx;
+    $("#cur-select").value = viewCode && CURS[viewCode] ? viewCode : baseCode;
 
     // uploaded product photo (falls back to the bundled tshirt.svg)
     if (product.image) $("#product-photo").src = "/media/" + encodeURIComponent(product.image);
@@ -219,6 +237,11 @@
     const el = $("#f-phone");
     const clean = el.value.replace(/[^0-9+\-\s()]/g, "");
     if (clean !== el.value) el.value = clean;
+  });
+
+  $("#cur-select").addEventListener("change", () => {
+    localStorage.setItem("w3cur", $("#cur-select").value);
+    location.reload();
   });
 
   $("#year").textContent = new Date().getFullYear();

@@ -35,8 +35,28 @@ async function paymentWindowHours() {
   return Number.isFinite(v) && v > 0 ? v : 24;
 }
 
+// live PHP<->USD rate, cached 12h, last good value persisted as fallback
+let fxCache = { at: 0, phpPerUsd: null };
+async function getFx() {
+  if (fxCache.phpPerUsd && Date.now() - fxCache.at < 12 * 3600e3) return fxCache;
+  try {
+    const r = await fetch("https://open.er-api.com/v6/latest/USD");
+    const d = await r.json();
+    const v = Number(d && d.rates && d.rates.PHP);
+    if (v > 0) {
+      fxCache = { at: Date.now(), phpPerUsd: v };
+      await db.setSetting("fx_php_per_usd", v);
+      return fxCache;
+    }
+  } catch {}
+  const saved = Number(await db.getSetting("fx_php_per_usd", "58"));
+  fxCache = { at: Date.now(), phpPerUsd: saved > 0 ? saved : 58 };
+  return fxCache;
+}
+
 async function publicSettings() {
   const s = await db.allSettingsMap();
+  const fx = await getFx();
   const wh = Number(s.payment_window_hours);
   return {
     business_name: s.business_name || "WAVE3",
@@ -45,7 +65,9 @@ async function publicSettings() {
     currency: s.currency || "₱",
     shipping_fee: Number(s.shipping_fee || 0),
     payment_note: s.payment_note || "",
-    payment_window_hours: Number.isFinite(wh) && wh > 0 ? wh : 24
+    payment_window_hours: Number.isFinite(wh) && wh > 0 ? wh : 24,
+    // units per 1 USD — clients convert: amount / fx[base] * fx[target]
+    fx: { PHP: fx.phpPerUsd, USD: 1, USDT: 1 }
   };
 }
 

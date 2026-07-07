@@ -15,7 +15,24 @@
   let currency = "₱";
   let pendingImage = null;
 
-  const money = (n) =>
+  // shopper-selected display currency (same mechanics as the store page)
+  const CURS = { PHP: "₱", USD: "$", USDT: "USDT " };
+  const symToCode = (s) => (s === "$" ? "USD" : s === "USDT" ? "USDT" : "PHP");
+  let baseCode = "PHP";
+  let fx = { PHP: 58, USD: 1, USDT: 1 };
+  let viewCode = localStorage.getItem("w3cur");
+
+  const money = (n) => {
+    const v = viewCode && CURS[viewCode] ? viewCode : baseCode;
+    const amt = v === baseCode ? Number(n) : (Number(n) / fx[baseCode]) * fx[v];
+    const str = amt.toLocaleString("en-PH", {
+      maximumFractionDigits: 2,
+      minimumFractionDigits: v === "PHP" ? 0 : 2
+    });
+    return (v !== baseCode ? "≈" : "") + CURS[v] + str;
+  };
+  // receipts always show the official amount in the store's own currency
+  const baseMoney = (n) =>
     currency + (currency.length > 1 ? " " : "") + Number(n).toLocaleString("en-PH", { maximumFractionDigits: 2 });
 
   const STEPS = [
@@ -95,6 +112,9 @@
 
   function render() {
     currency = order.settings.currency || "₱";
+    baseCode = symToCode(currency);
+    if (order.settings.fx) fx = order.settings.fx;
+    $("#cur-select").value = viewCode && CURS[viewCode] ? viewCode : baseCode;
     $("#loading").classList.add("hidden");
     $("#content").classList.remove("hidden");
     $("#o-code").textContent = order.code.replace(/^W3-/, "W3-");
@@ -134,6 +154,8 @@
             ? `Includes ${money(order.shipping_fee)} shipping fee.`
             : "Free shipping on this order.";
       }
+      if ((viewCode && CURS[viewCode] ? viewCode : baseCode) !== baseCode)
+        $("#shipping-note").textContent += ` Converted estimate — the exact amount to pay is ${baseMoney(order.total)}.`;
       $("#order-lines").innerHTML = order.items
         .map(
           (it) =>
@@ -200,11 +222,11 @@
       $("#r-items").innerHTML = order.items
         .map(
           (it) =>
-            `<tr><td>${it.product_name} — Size ${it.size}</td><td style="text-align:center">${it.qty}</td><td style="text-align:right">${money(it.unit_price * it.qty)}</td></tr>`
+            `<tr><td>${it.product_name} — Size ${it.size}</td><td style="text-align:center">${it.qty}</td><td style="text-align:right">${baseMoney(it.unit_price * it.qty)}</td></tr>`
         )
         .join("");
-      $("#r-shipping").textContent = order.shipping_fee > 0 ? money(order.shipping_fee) : "FREE";
-      $("#r-total").textContent = money(order.total);
+      $("#r-shipping").textContent = order.shipping_fee > 0 ? baseMoney(order.shipping_fee) : "FREE";
+      $("#r-total").textContent = baseMoney(order.total);
       $("#shipped-note").textContent =
         order.status === "shipped"
           ? "Your order has been shipped! 📦"
@@ -324,6 +346,11 @@
   }
 
   $("#print-btn")?.addEventListener("click", () => window.print());
+
+  $("#cur-select").addEventListener("change", () => {
+    localStorage.setItem("w3cur", $("#cur-select").value);
+    location.reload();
+  });
 
   load();
   // gentle auto-refresh while awaiting verification
