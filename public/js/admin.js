@@ -318,6 +318,7 @@
           ${p.image ? `<img src="/media/${esc(p.image)}" alt="Product photo" style="width:44px;height:44px;object-fit:cover;border-radius:8px;border:1px solid var(--border-strong);" />
             <button class="btn btn-danger btn-sm p-photo-remove">Remove photo</button>` : ""}
           <label class="btn btn-ghost btn-sm" style="cursor:pointer;">${p.image ? "Replace" : "+ Upload"} product photo<input type="file" class="p-photo-file hidden" accept="image/png,image/jpeg,image/webp" /></label>
+          <button class="btn btn-danger btn-sm p-delete" style="margin-left:auto;">🗑 Delete product</button>
         </div>
       </div>`
       )
@@ -381,6 +382,17 @@
           await api(`/api/admin/products/${pid}/photo`, { method: "POST", body: { image: "" } });
           loadInventory();
         });
+      card.querySelector(".p-delete").addEventListener("click", async () => {
+        const name = card.querySelector(".p-name").value;
+        if (!confirm(`Delete "${name}" completely? Its sizes and photo will be removed too. This cannot be undone.`)) return;
+        try {
+          await api(`/api/admin/products/${pid}`, { method: "DELETE" });
+          toast("Product deleted.");
+          loadInventory();
+        } catch (err) {
+          toast(err.message, true);
+        }
+      });
       card.querySelector(".p-add-size").addEventListener("click", async () => {
         const size = prompt("New size name (e.g. 2XL):");
         if (!size) return;

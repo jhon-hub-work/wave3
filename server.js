@@ -758,6 +758,21 @@ app.post("/api/admin/products/:id/photo", requireAdmin, wrap(async (req, res) =>
   res.json({ image: id });
 }));
 
+// delete a whole product (only if none of its sizes have ever been ordered)
+app.delete("/api/admin/products/:id", requireAdmin, wrap(async (req, res) => {
+  const p = await db.get("SELECT * FROM products WHERE id = ?", [Number(req.params.id)]);
+  if (!p) return res.status(404).json({ error: "Product not found." });
+  const used = await db.get(
+    `SELECT 1 AS x FROM order_items oi JOIN variants v ON v.id = oi.variant_id
+     WHERE v.product_id = ? LIMIT 1`, [p.id]);
+  if (used)
+    return res.status(400).json({ error: "This product has orders — untick 'Visible in store' to hide it instead." });
+  await db.run("DELETE FROM variants WHERE product_id = ?", [p.id]);
+  await db.deleteMedia(p.image);
+  await db.run("DELETE FROM products WHERE id = ?", [p.id]);
+  res.json({ ok: true });
+}));
+
 app.post("/api/admin/variants", requireAdmin, wrap(async (req, res) => {
   const { id, product_id, size, stock, length_in, width_in, sleeves_in } = req.body || {};
   const st = Math.floor(Number(stock));
