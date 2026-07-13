@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cart — WAVE3 Collective</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <style>
+    .cart-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 36px; align-items: start; padding: 36px 0 20px; }
+    @media (max-width: 900px) { .cart-grid { grid-template-columns: 1fr; } }
+    .cart-lines { display: flex; flex-direction: column; gap: 10px; }
+    .summary-line { display: flex; justify-content: space-between; font-size: 15px; padding: 6px 0; }
+    .summary-total { font-family: var(--display); font-size: 24px; }
+    .qty-stepper { display: inline-flex; align-items: center; border: 1px solid var(--border-strong); border-radius: 8px; overflow: hidden; }
+    .qty-stepper button {
+      width: 34px; height: 34px; background: var(--surface-2); color: var(--text);
+      border: none; font-size: 16px; cursor: pointer;
+    }
+    .qty-stepper button:hover:not(:disabled) { background: var(--blue-dim); }
+    .qty-stepper button:disabled { opacity: 0.35; cursor: not-allowed; }
+    .qty-stepper .qty { width: 34px; text-align: center; font-weight: 700; font-size: 14px; }
+    .line-name { font-weight: 700; font-size: 14.5px; }
+    .line-meta { font-size: 12.5px; color: var(--muted); }
+    .line-remove { background: none; border: none; color: var(--red); font-size: 12px; font-weight: 700; cursor: pointer; padding: 2px 0; text-align: left; }
+  </style>
+</head>
+<body>
+  <main class="container" style="min-height: 55vh;">
+    <div class="mt-3">
+      <p class="eyebrow">Your Cart</p>
+      <h1 style="font-size: clamp(32px, 5vw, 52px); margin-top: 6px;">Cart</h1>
+    </div>
+
+    <div id="empty-cart" class="hidden mt-3">
+      <p class="muted">Your cart is empty.</p>
+      <a class="btn btn-primary mt-2" href="/shop">Shop now <span aria-hidden="true">&#8594;</span></a>
+    </div>
+
+    <div class="cart-grid" id="cart-grid">
+      <div>
+        <div class="cart-lines" id="cart-lines"></div>
+        <p class="muted small mt-2" id="cart-note"></p>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="summary-line"><span class="muted">Items</span><span id="sum-items">—</span></div>
+          <div class="summary-line"><span class="muted">Shipping</span><span id="sum-shipping">To be confirmed</span></div>
+          <div class="summary-line summary-total"><span>Total</span><span id="sum-total">—</span></div>
+        </div>
+
+        <form id="order-form" class="card mt-2" novalidate>
+          <h3 style="font-size: 20px; margin-bottom: 14px;">Your details</h3>
+          <div class="field">
+            <label class="field-label" for="f-name">Full name *</label>
+            <input type="text" id="f-name" autocomplete="name" required maxlength="120" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="f-phone">Mobile number *</label>
+            <input type="tel" id="f-phone" autocomplete="tel" required maxlength="40" placeholder="09XX XXX XXXX" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="f-address">Complete delivery address *</label>
+            <textarea id="f-address" required maxlength="500" placeholder="House/Unit, Street, Barangay, City, Province, ZIP"></textarea>
+          </div>
+          <div class="field">
+            <label class="field-label" for="f-contact">Facebook / Instagram (optional)</label>
+            <input type="text" id="f-contact" maxlength="120" placeholder="So we can reach you faster" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="f-notes">Notes (optional)</label>
+            <textarea id="f-notes" maxlength="500" placeholder="Anything we should know?"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" id="submit-btn" style="width: 100%; font-size: 17px; padding: 16px;">
+            Place order
+          </button>
+          <p class="muted small mt-1" style="text-align:center">After ordering you'll get your payment instructions and a private order link.</p>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- ORDER CONFIRMATION MODAL -->
+  <div id="confirm-modal" class="hidden" style="position:fixed; inset:0; background:rgba(0,0,0,.78); z-index:200; display:flex; align-items:center; justify-content:center; padding:20px; overflow:auto;">
+    <div class="card" style="max-width:440px; width:100%; margin:auto;">
+      <p class="eyebrow">Confirm your order</p>
+      <h3 style="font-size:24px; margin:6px 0 14px;">Is everything correct?</h3>
+      <div id="cf-items" class="mb-2"></div>
+      <div id="cf-details" style="border-top:1px solid var(--border); padding-top:12px;"></div>
+      <p class="muted small mt-2">Please double-check — we ship to the address above.</p>
+      <div class="flex mt-3" style="gap:10px;">
+        <button class="btn btn-ghost" id="cf-edit" style="flex:1;">Go back &amp; edit</button>
+        <button class="btn btn-primary" id="cf-place" style="flex:1;">Confirm &amp; place</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/js/nav.js"></script>
+  <script src="/js/cart.js"></script>
+</body>
+</html>

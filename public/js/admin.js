@@ -726,6 +726,8 @@
     $("#s-shipping").value = d.settings.shipping_fee;
     $("#s-window").value = d.settings.payment_window_hours;
     $("#s-note").value = d.settings.payment_note;
+    $("#s-discord").value = d.settings.discord || "";
+    $("#s-story").value = d.settings.story || "";
     channelsDraft = d.payment_channels;
     renderChannels();
     contactsDraft = d.contact_channels || [];
@@ -745,6 +747,8 @@
           shipping_fee: Number($("#s-shipping").value),
           payment_window_hours: Number($("#s-window").value),
           payment_note: $("#s-note").value,
+          discord_url: $("#s-discord").value,
+          story_text: $("#s-story").value,
           payment_channels: channelsDraft,
           contact_channels: contactsDraft
         }

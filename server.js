@@ -66,6 +66,8 @@ async function publicSettings() {
     shipping_fee: Number(s.shipping_fee || 0),
     payment_note: s.payment_note || "",
     payment_window_hours: Number.isFinite(wh) && wh > 0 ? wh : 24,
+    story: s.story_text || "",
+    discord: s.discord_url || "",
     // units per 1 USD — clients convert: amount / fx[base] * fx[target]
     fx: { PHP: fx.phpPerUsd, USD: 1, USDT: 1 }
   };
@@ -872,6 +874,12 @@ app.post("/api/admin/settings", requireAdmin, wrap(async (req, res) => {
     await db.setSetting("shipping_fee", fee);
   }
   if (b.payment_note !== undefined) await db.setSetting("payment_note", String(b.payment_note));
+  if (b.story_text !== undefined) await db.setSetting("story_text", String(b.story_text).slice(0, 20000));
+  if (b.discord_url !== undefined) {
+    let url = String(b.discord_url).trim();
+    if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
+    await db.setSetting("discord_url", url);
+  }
   if (b.payment_window_hours !== undefined) {
     const h = Number(b.payment_window_hours);
     if (!Number.isFinite(h) || h < 1 || h > 168)
@@ -935,6 +943,10 @@ app.post("/api/admin/password", requireAdmin, wrap(async (req, res) => {
 // ---------- pages ----------
 app.get("/order/:code", (req, res) => res.sendFile(path.join(__dirname, "public", "order.html")));
 app.get("/admin", (req, res) => res.sendFile(path.join(__dirname, "public", "admin.html")));
+app.get("/shop", (req, res) => res.sendFile(path.join(__dirname, "public", "shop.html")));
+app.get("/story", (req, res) => res.sendFile(path.join(__dirname, "public", "story.html")));
+app.get("/track", (req, res) => res.sendFile(path.join(__dirname, "public", "track.html")));
+app.get("/cart", (req, res) => res.sendFile(path.join(__dirname, "public", "cart.html")));
 
 // one-time repair, every boot (idempotent): any paid/shipped order missing its
 // auto shipping expense gets it logged, dated to when it was paid

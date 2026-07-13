@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Track Order — WAVE3 Collective</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <style>
+    .track-box { display: flex; gap: 10px; max-width: 460px; margin-top: 20px; }
+    .track-field { display: flex; flex: 1; }
+    .track-prefix {
+      display: flex; align-items: center; padding: 0 12px 0 14px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-right: none; border-radius: 10px 0 0 10px;
+      font-family: var(--display); font-size: 16px; letter-spacing: 0.08em;
+      color: var(--blue-bright); user-select: none;
+    }
+    .track-field input {
+      text-transform: uppercase; border-radius: 0 10px 10px 0;
+      letter-spacing: 0.15em; font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <main class="container" style="min-height: 55vh; padding-bottom: 30px;">
+    <div class="mt-4">
+      <p class="eyebrow">Order Status</p>
+      <h1 style="font-size: clamp(36px, 6vw, 64px); margin-top: 8px;">Track your <span style="color:var(--blue-bright);">order</span></h1>
+      <p class="muted mt-1" style="max-width:520px;">Enter the order code from your confirmation (e.g. W3-ABC123). You'll see your order status, payment instructions, and courier tracking number.</p>
+    </div>
+
+    <div class="track-box">
+      <div class="track-field">
+        <span class="track-prefix" aria-hidden="true">W3-</span>
+        <input type="text" id="track-input" placeholder="ABC123" maxlength="6" aria-label="Order code, 6 characters after W3-" />
+      </div>
+      <button class="btn btn-primary" id="track-btn">Track</button>
+    </div>
+
+    <div id="contact-box" class="hidden mt-4">
+      <h3 style="font-size: 18px;">Can't find your code? Message us</h3>
+      <div class="flex mt-1" id="contact-row" style="flex-wrap:wrap;"></div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/js/nav.js"></script>
+  <script>
+    (() => {
+      const $ = (s) => document.querySelector(s);
+      const toastEl = $("#toast");
+      let toastTimer;
+      function toast(msg, isError = false) {
+        toastEl.textContent = msg;
+        toastEl.classList.toggle("error", isError);
+        toastEl.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toastEl.classList.remove("show"), 4000);
+      }
+      function goTrack() {
+        const tail = $("#track-input").value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+        if (tail.length !== 6) return toast("Order codes have 6 characters after W3- (e.g. W3-ABC123).", true);
+        window.location.href = `/order/${encodeURIComponent("W3-" + tail)}`;
+      }
+      $("#track-btn").addEventListener("click", goTrack);
+      $("#track-input").addEventListener("keydown", (e) => { if (e.key === "Enter") goTrack(); });
+      $("#track-input").addEventListener("input", () => {
+        const el = $("#track-input");
+        let v = el.value.toUpperCase();
+        if (v.startsWith("W3-")) v = v.slice(3);
+        v = v.replace(/[^A-Z0-9]/g, "").slice(0, 6);
+        if (v !== el.value) el.value = v;
+      });
+
+      W3.data.then((shop) => {
+        const contacts = shop.contacts || [];
+        $("#contact-box").classList.toggle("hidden", contacts.length === 0);
+        $("#contact-row").innerHTML = contacts
+          .map((c) => `<a class="btn btn-ghost btn-sm" href="${W3.esc(c.url)}" target="_blank" rel="noopener">${W3.esc(c.label)}</a>`)
+          .join("");
+      });
+    })();
+  </script>
+</body>
+</html>
