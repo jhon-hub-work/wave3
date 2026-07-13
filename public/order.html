@@ -28,7 +28,7 @@
       position: relative; z-index: 1; color: var(--muted-2); font-weight: 700; font-size: 13px;
     }
     .step.done .step-dot { background: var(--blue); border-color: var(--blue); color: #fff; }
-    .step.current .step-dot { border-color: var(--blue-bright); color: var(--blue-bright); box-shadow: 0 0 0 4px rgba(43,60,255,0.18); }
+    .step.current .step-dot { border-color: var(--blue-bright); color: var(--blue-bright); box-shadow: 0 0 0 4px rgba(0,15,147,0.25); }
     .step-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-2); margin-top: 8px; }
     .step.done .step-label, .step.current .step-label { color: var(--text); }
 
@@ -49,7 +49,7 @@
       text-align: center; cursor: pointer; transition: border-color 0.2s, background-color 0.2s;
       background: var(--bg-2);
     }
-    .dropzone:hover, .dropzone.drag { border-color: var(--blue); background: rgba(43,60,255,0.05); }
+    .dropzone:hover, .dropzone.drag { border-color: var(--blue); background: rgba(0,15,147,0.08); }
     .dropzone svg { margin-bottom: 8px; }
     .preview-img { max-width: 100%; max-height: 320px; border-radius: 10px; border: 1px solid var(--border-strong); }
 
@@ -70,7 +70,7 @@
     }
     .r-wave { display: flex; align-items: center; gap: 10px; }
     .r-wave .r-logo-text { font-family: var(--display); font-size: 22px; color: #111; }
-    .r-wave .three { color: #2b3cff; }
+    .r-wave .three { color: #000F93; }
 
     @media print {
       body { background: #fff; }
@@ -156,7 +156,7 @@
 
           <div id="uploader">
             <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Upload payment screenshot">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#4d5cff" stroke-width="1.6" aria-hidden="true">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#000F93" stroke-width="1.6" aria-hidden="true">
                 <path d="M12 16V4m0 0l-4 4m4-4l4 4" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round"/>
               </svg>

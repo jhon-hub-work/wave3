@@ -57,7 +57,7 @@
     if (order && order.status === "pending" && order.awaiting_quote) {
       el.classList.remove("hidden");
       el.style.borderColor = "#333f9e";
-      el.style.background = "rgba(77,92,255,0.08)";
+      el.style.background = "rgba(0,15,147,0.12)";
       el.innerHTML =
         "🧾 <strong>Waiting for your shipping fee.</strong> The seller will confirm your total shortly based on your delivery address. Your payment timer hasn't started yet — this page updates on its own once your total is ready.";
       return;
