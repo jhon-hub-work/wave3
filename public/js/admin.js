@@ -728,6 +728,8 @@
     $("#s-note").value = d.settings.payment_note;
     $("#s-discord").value = d.settings.discord || "";
     $("#s-story").value = d.settings.story || "";
+    const mv = d.settings.movement || [];
+    for (const i of [1, 2, 3, 4]) $("#s-mv" + i).value = mv[i - 1] || "";
     channelsDraft = d.payment_channels;
     renderChannels();
     contactsDraft = d.contact_channels || [];
@@ -749,6 +751,10 @@
           payment_note: $("#s-note").value,
           discord_url: $("#s-discord").value,
           story_text: $("#s-story").value,
+          movement_story_1: $("#s-mv1").value,
+          movement_story_2: $("#s-mv2").value,
+          movement_story_3: $("#s-mv3").value,
+          movement_story_4: $("#s-mv4").value,
           payment_channels: channelsDraft,
           contact_channels: contactsDraft
         }

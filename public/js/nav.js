@@ -45,7 +45,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="logo-mark" href="/" aria-label="Wave 3 Collective — home">
-        <img src="/logo-mark.png" width="34" height="34" alt="" style="display:block;object-fit:contain" />
+        <img src="/logo-mark.png" width="52" height="46" alt="" style="display:block;object-fit:contain" />
         <span class="logo-text-2"><span class="l1">WAVE <span class="three">3</span></span><span class="l2">COLLECTIVE</span></span>
       </a>
       <nav class="mainnav" id="mainnav">
@@ -90,7 +90,7 @@
       <div class="footer-grid">
         <div class="footer-brand">
           <a class="logo-mark" href="/">
-            <img src="/logo-mark.png" width="30" height="30" alt="" style="display:block;object-fit:contain" />
+            <img src="/logo-mark.png" width="46" height="40" alt="" style="display:block;object-fit:contain" />
             <span class="logo-text-2"><span class="l1">WAVE <span class="three">3</span></span><span class="l2">COLLECTIVE</span></span>
           </a>
           <p class="muted small mt-1">Built on vision.<br/>Designed for the future.<br/>The movement continues.</p>

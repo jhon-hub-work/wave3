@@ -68,6 +68,7 @@ async function publicSettings() {
     payment_window_hours: Number.isFinite(wh) && wh > 0 ? wh : 24,
     story: s.story_text || "",
     discord: s.discord_url || "",
+    movement: [1, 2, 3, 4].map((i) => s["movement_story_" + i] || ""),
     // units per 1 USD — clients convert: amount / fx[base] * fx[target]
     fx: { PHP: fx.phpPerUsd, USD: 1, USDT: 1 }
   };
@@ -875,6 +876,9 @@ app.post("/api/admin/settings", requireAdmin, wrap(async (req, res) => {
   }
   if (b.payment_note !== undefined) await db.setSetting("payment_note", String(b.payment_note));
   if (b.story_text !== undefined) await db.setSetting("story_text", String(b.story_text).slice(0, 20000));
+  for (const i of [1, 2, 3, 4])
+    if (b["movement_story_" + i] !== undefined)
+      await db.setSetting("movement_story_" + i, String(b["movement_story_" + i]).slice(0, 2000));
   if (b.discord_url !== undefined) {
     let url = String(b.discord_url).trim();
     if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
