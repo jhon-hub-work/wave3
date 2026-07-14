@@ -1,32 +1,32 @@
-/* Home page: featured drops + movement photo strip (click to expand). */
+/* Home page: featured drops (owner-curated) + movement photo strip. */
 (() => {
-  const SOON = [
-    { name: "Wave 3 Hoodie" },
-    { name: "Wave 3 Pro Jersey" },
-    { name: "Wave 3 Tumbler" }
-  ];
-
   const TITLES = ["Built for the grind", "Wherever the wave takes you", "Fuel the movement", "Carry the culture"];
 
   W3.data.then((shop) => {
+    // admin-uploaded hero image (falls back to the bundled hero.png)
+    if (shop.settings.hero)
+      document.getElementById("hero-img").src = "/media/" + encodeURIComponent(shop.settings.hero);
+
     const grid = document.getElementById("drop-grid");
     const esc = W3.esc;
     const cards = [];
 
     for (const p of shop.products) {
+      if (!p.featured) continue;
       const img = p.image ? "/media/" + encodeURIComponent(p.image) : "/tshirt.svg";
       const inStock = p.variants.some((v) => v.stock > 0);
+      const badge = inStock ? (p.badge || "Limited Drop") : "Sold Out";
       cards.push(`
         <a class="drop-card" href="/shop">
-          <div class="ph"><span class="tag">${inStock ? "Limited Drop" : "Sold Out"}</span><img src="${img}" alt="${esc(p.name)}" loading="lazy" /></div>
+          <div class="ph"><span class="tag">${esc(badge)}</span><img src="${img}" alt="${esc(p.name)}" loading="lazy" /></div>
           <div class="info"><div class="nm">${esc(p.name)}</div><div class="pr">${W3.money(p.price)}</div></div>
         </a>`);
     }
-    for (const s of SOON) {
+    for (const name of shop.settings.coming_soon || []) {
       cards.push(`
         <div class="drop-card soon">
           <div class="ph"><span class="tag soon">Coming Soon</span><img class="soon-mark" src="/logo-mark.png" alt="Wave 3" loading="lazy" /></div>
-          <div class="info"><div class="nm">${esc(s.name)}</div><div class="pr" style="color:#8a8aa0;">Coming soon</div></div>
+          <div class="info"><div class="nm">${esc(name)}</div><div class="pr" style="color:#8a8aa0;">Coming soon</div></div>
         </div>`);
     }
     grid.innerHTML = cards.join("");

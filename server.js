@@ -68,6 +68,8 @@ async function publicSettings() {
     payment_window_hours: Number.isFinite(wh) && wh > 0 ? wh : 24,
     story: s.story_text || "",
     discord: s.discord_url || "",
+    hero: s.hero_image || "",
+    coming_soon: parseJsonSetting(s.coming_soon || '["Wave 3 Hoodie","Wave 3 Pro Jersey","Wave 3 Tumbler"]'),
     movement: [1, 2, 3, 4].map((i) => s["movement_story_" + i] || ""),
     // units per 1 USD — clients convert: amount / fx[base] * fx[target]
     fx: { PHP: fx.phpPerUsd, USD: 1, USDT: 1 }
@@ -858,7 +860,8 @@ app.get("/api/admin/settings", requireAdmin, wrap(async (req, res) => {
   res.json({
     settings: await publicSettings(),
     payment_channels: await paymentChannels(),
-    contact_channels: await contactChannels()
+    contact_channels: await contactChannels(),
+    products: await db.all("SELECT id, name, featured, badge FROM products ORDER BY id")
   });
 }));
 
@@ -879,6 +882,37 @@ app.post("/api/admin/settings", requireAdmin, wrap(async (req, res) => {
   for (const i of [1, 2, 3, 4])
     if (b["movement_story_" + i] !== undefined)
       await db.setSetting("movement_story_" + i, String(b["movement_story_" + i]).slice(0, 2000));
+  // hero image: base64 upload replaces it, empty string resets to the default
+  if (b.hero_data !== undefined) {
+    const old = await db.getSetting("hero_image", "");
+    if (b.hero_data === "") {
+      await db.deleteMedia(old);
+      await db.setSetting("hero_image", "");
+    } else {
+      const m = String(b.hero_data).match(/^data:image\/(png|jpe?g|webp);base64,(.+)$/);
+      if (!m) return res.status(400).json({ error: "Hero image must be a PNG, JPG, or WEBP." });
+      if (Buffer.from(m[2], "base64").length > 8 * 1024 * 1024)
+        return res.status(400).json({ error: "Hero image too large (max 8 MB)." });
+      const id = await db.saveMedia(String(b.hero_data));
+      await db.deleteMedia(old);
+      await db.setSetting("hero_image", id);
+    }
+  }
+  if (b.coming_soon !== undefined) {
+    if (!Array.isArray(b.coming_soon))
+      return res.status(400).json({ error: "Invalid coming-soon list." });
+    const cleaned = b.coming_soon.map((n) => String(n).trim()).filter(Boolean).slice(0, 12);
+    await db.setSetting("coming_soon", JSON.stringify(cleaned));
+  }
+  if (b.featured !== undefined) {
+    if (!Array.isArray(b.featured))
+      return res.status(400).json({ error: "Invalid featured list." });
+    for (const f of b.featured) {
+      if (!f || !Number.isFinite(Number(f.id))) continue;
+      await db.run("UPDATE products SET featured = ?, badge = ? WHERE id = ?",
+        [f.featured ? 1 : 0, String(f.badge || "").trim().slice(0, 40) || null, Number(f.id)]);
+    }
+  }
   if (b.discord_url !== undefined) {
     let url = String(b.discord_url).trim();
     if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;

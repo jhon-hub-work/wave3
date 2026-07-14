@@ -232,7 +232,10 @@ async function init() {
     // the customer is still waiting to know their shipping fee.
     "ALTER TABLE orders ADD COLUMN quoted_at TEXT",
     // product photo (a media id), uploadable from the dashboard
-    "ALTER TABLE products ADD COLUMN image TEXT"
+    "ALTER TABLE products ADD COLUMN image TEXT",
+    // homepage Featured Drops: owner picks which products show and their badge
+    "ALTER TABLE products ADD COLUMN featured INTEGER NOT NULL DEFAULT 1",
+    "ALTER TABLE products ADD COLUMN badge TEXT"
   ]) {
     try {
       await client.execute(alter);

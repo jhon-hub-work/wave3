@@ -257,8 +257,10 @@
       <h1 class="page-title">Settings</h1>
       <p class="muted small">Everything customers see on the store and payment pages.</p>
 
+      <!-- STORE & PRICING -->
       <div class="card mt-3">
-        <h3 style="font-size:18px; margin-bottom: 12px;">Store</h3>
+        <p class="eyebrow">Store &amp; Pricing</p>
+        <h3 style="font-size:18px; margin: 6px 0 12px;">Basics</h3>
         <div class="field"><label class="field-label" for="s-name">Business name</label><input type="text" id="s-name" /></div>
         <div class="field"><label class="field-label" for="s-tagline">Tagline</label><input type="text" id="s-tagline" /></div>
         <div class="field">
@@ -277,47 +279,83 @@
           <label class="field-label" for="s-window">Payment window (hours) — unpaid orders with no proof auto-expire and release their stock</label>
           <input type="number" id="s-window" min="1" max="168" step="1" />
         </div>
+      </div>
+
+      <!-- HOMEPAGE -->
+      <div class="card mt-3">
+        <p class="eyebrow">Homepage</p>
+        <h3 style="font-size:18px; margin: 6px 0 12px;">Hero image</h3>
+        <p class="muted small mb-2">The big photo at the top of the homepage. Uploads are stored safely in the database.</p>
+        <div class="flex mb-2" style="flex-wrap:wrap;">
+          <img id="hero-preview" src="/hero.png" alt="Current hero" style="width:120px; height:90px; object-fit:cover; border-radius:8px; border:1px solid var(--border-strong);" />
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer;">Upload new hero image<input type="file" id="hero-file" class="hidden" accept="image/png,image/jpeg,image/webp" /></label>
+          <button class="btn btn-danger btn-sm hidden" id="hero-reset">Reset to default</button>
+        </div>
+        <p class="muted small hidden" id="hero-pending" style="color:var(--amber);">NOT SAVED YET — click "Save all settings" below.</p>
+
+        <h3 style="font-size:18px; margin: 18px 0 8px;">Featured drops</h3>
+        <p class="muted small mb-2">Choose which products appear on the homepage and the badge shown on each (e.g. Limited Drop, Best Seller, New).</p>
+        <div id="featured-edit" class="mb-2"></div>
+
+        <div class="spread mb-2" style="margin-top:18px;">
+          <h3 style="font-size:18px;">"Coming soon" cards</h3>
+          <button class="btn btn-ghost btn-sm" id="add-soon-btn">+ Add card</button>
+        </div>
+        <div id="soon-edit" class="mb-2"></div>
+
+        <h3 style="font-size:18px; margin: 18px 0 8px;">Photo stories</h3>
+        <p class="muted small mb-2">Shown when a customer clicks one of the 4 photos in the "More than a brand" section.</p>
         <div class="field">
-          <label class="field-label" for="s-note">Payment instructions note</label>
-          <textarea id="s-note"></textarea>
+          <label class="field-label" for="s-mv1">Photo 1 — trading desk</label>
+          <textarea id="s-mv1" placeholder="The story behind this photo..."></textarea>
         </div>
         <div class="field">
-          <label class="field-label" for="s-discord">Community link (Discord invite — shown as "Community" and "Join the community" on the store)</label>
-          <input type="text" id="s-discord" placeholder="https://discord.gg/..." />
+          <label class="field-label" for="s-mv2">Photo 2 — mountains</label>
+          <textarea id="s-mv2" placeholder="The story behind this photo..."></textarea>
         </div>
+        <div class="field">
+          <label class="field-label" for="s-mv3">Photo 3 — mug</label>
+          <textarea id="s-mv3" placeholder="The story behind this photo..."></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label" for="s-mv4">Photo 4 — backpack</label>
+          <textarea id="s-mv4" placeholder="The story behind this photo..."></textarea>
+        </div>
+      </div>
+
+      <!-- PAGES & COMMUNITY -->
+      <div class="card mt-3">
+        <p class="eyebrow">Pages &amp; Community</p>
+        <h3 style="font-size:18px; margin: 6px 0 12px;">Our Story &amp; links</h3>
         <div class="field">
           <label class="field-label" for="s-story">Our Story page (blank line = new paragraph)</label>
           <textarea id="s-story" style="min-height:180px;" placeholder="Tell your customers where Wave 3 came from..."></textarea>
         </div>
         <div class="field">
-          <label class="field-label" for="s-mv1">Homepage photo story 1 — trading desk (shown when the photo is clicked)</label>
-          <textarea id="s-mv1" placeholder="The story behind this photo..."></textarea>
-        </div>
-        <div class="field">
-          <label class="field-label" for="s-mv2">Homepage photo story 2 — mountains</label>
-          <textarea id="s-mv2" placeholder="The story behind this photo..."></textarea>
-        </div>
-        <div class="field">
-          <label class="field-label" for="s-mv3">Homepage photo story 3 — mug</label>
-          <textarea id="s-mv3" placeholder="The story behind this photo..."></textarea>
-        </div>
-        <div class="field">
-          <label class="field-label" for="s-mv4">Homepage photo story 4 — backpack</label>
-          <textarea id="s-mv4" placeholder="The story behind this photo..."></textarea>
+          <label class="field-label" for="s-discord">Community link (Discord invite — shown as "Community" and "Join the community" on the store)</label>
+          <input type="text" id="s-discord" placeholder="https://discord.gg/..." />
         </div>
       </div>
 
+      <!-- PAYMENTS -->
       <div class="card mt-3">
-        <div class="spread mb-2">
+        <p class="eyebrow">Payments</p>
+        <div class="spread mb-2" style="margin-top:6px;">
           <h3 style="font-size:18px;">Payment channels</h3>
           <button class="btn btn-ghost btn-sm" id="add-channel-btn">+ Add channel</button>
         </div>
         <p class="muted small mb-2">Tip: upload the channel's QR code (GCash / Maya / bank app QR) — customers scan it instead of typing account numbers, so no wrong-account mistakes.</p>
         <div id="channels-edit"></div>
+        <div class="field" style="margin-top:14px;">
+          <label class="field-label" for="s-note">Payment instructions note</label>
+          <textarea id="s-note"></textarea>
+        </div>
       </div>
 
+      <!-- CONTACTS -->
       <div class="card mt-3">
-        <div class="spread mb-2">
+        <p class="eyebrow">Contacts</p>
+        <div class="spread mb-2" style="margin-top:6px;">
           <h3 style="font-size:18px;">Contact channels</h3>
           <button class="btn btn-ghost btn-sm" id="add-contact-btn">+ Add contact</button>
         </div>
@@ -327,8 +365,10 @@
 
       <button class="btn btn-primary mt-3" id="save-settings-btn" style="min-width: 220px;">Save all settings</button>
 
+      <!-- SECURITY -->
       <div class="card mt-3">
-        <h3 style="font-size:18px; margin-bottom: 12px;">Change admin password</h3>
+        <p class="eyebrow">Security</p>
+        <h3 style="font-size:18px; margin: 6px 0 12px;">Change admin password</h3>
         <div class="field"><label class="field-label" for="pw-current">Current password</label><input type="password" id="pw-current" autocomplete="current-password" /></div>
         <div class="field"><label class="field-label" for="pw-next">New password (min 6 characters)</label><input type="password" id="pw-next" autocomplete="new-password" /></div>
         <button class="btn btn-ghost" id="change-pw-btn">Change password</button>

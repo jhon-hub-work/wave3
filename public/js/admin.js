@@ -718,6 +718,78 @@
     renderChannels();
   });
 
+  // homepage drafts
+  let heroDraft; // undefined = untouched, "" = reset to default, dataURL = new upload
+  let featuredDraft = [];
+  let soonDraft = [];
+
+  function renderFeatured() {
+    $("#featured-edit").innerHTML = featuredDraft
+      .map(
+        (p, i) => `
+      <div class="flex mb-2" data-i="${i}" style="flex-wrap:wrap;">
+        <label class="flex small" style="cursor:pointer; min-width:220px; flex:1;">
+          <input type="checkbox" class="ft-show" ${p.featured ? "checked" : ""} style="width:auto;" />
+          <strong>${esc(p.name)}</strong>
+        </label>
+        <input type="text" class="ft-badge" value="${esc(p.badge || "")}" placeholder="Badge (e.g. Limited Drop)" maxlength="40" style="width:220px;" />
+      </div>`
+      )
+      .join("") || '<p class="muted small">No products yet — add one in Inventory.</p>';
+  }
+  function collectFeatured() {
+    $$("#featured-edit [data-i]").forEach((el) => {
+      const p = featuredDraft[Number(el.dataset.i)];
+      p.featured = el.querySelector(".ft-show").checked;
+      p.badge = el.querySelector(".ft-badge").value;
+    });
+  }
+
+  function renderSoon() {
+    $("#soon-edit").innerHTML = soonDraft
+      .map(
+        (name, i) => `
+      <div class="flex mb-2" data-i="${i}">
+        <input type="text" class="soon-name" value="${esc(name)}" placeholder="e.g. Wave 3 Hoodie" maxlength="60" style="flex:1;" />
+        <button class="btn btn-danger btn-sm soon-del">✕</button>
+      </div>`
+      )
+      .join("") || '<p class="muted small">No coming-soon cards — the homepage shows only real products.</p>';
+    $$("#soon-edit .soon-del").forEach((b) =>
+      b.addEventListener("click", () => {
+        collectSoon();
+        soonDraft.splice(Number(b.closest("[data-i]").dataset.i), 1);
+        renderSoon();
+      })
+    );
+  }
+  function collectSoon() {
+    soonDraft = $$("#soon-edit .soon-name").map((el) => el.value.trim()).filter(Boolean);
+  }
+  $("#add-soon-btn").addEventListener("click", () => {
+    collectSoon();
+    soonDraft.push("");
+    renderSoon();
+  });
+
+  $("#hero-file").addEventListener("change", () => {
+    const file = $("#hero-file").files[0];
+    if (!file) return;
+    if (file.size > 8 * 1024 * 1024) return toast("Image too large (max 8 MB).", true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      heroDraft = reader.result;
+      $("#hero-preview").src = heroDraft;
+      $("#hero-pending").classList.remove("hidden");
+    };
+    reader.readAsDataURL(file);
+  });
+  $("#hero-reset").addEventListener("click", () => {
+    heroDraft = "";
+    $("#hero-preview").src = "/hero.png";
+    $("#hero-pending").classList.remove("hidden");
+  });
+
   async function loadSettings() {
     const d = await api("/api/admin/settings");
     $("#s-currency").value = d.settings.currency || "₱";
@@ -734,15 +806,28 @@
     renderChannels();
     contactsDraft = d.contact_channels || [];
     renderContacts();
+    heroDraft = undefined;
+    $("#hero-pending").classList.add("hidden");
+    $("#hero-preview").src = d.settings.hero ? "/media/" + encodeURIComponent(d.settings.hero) : "/hero.png";
+    $("#hero-reset").classList.toggle("hidden", !d.settings.hero);
+    featuredDraft = d.products || [];
+    renderFeatured();
+    soonDraft = d.settings.coming_soon || [];
+    renderSoon();
   }
 
   $("#save-settings-btn").addEventListener("click", async () => {
     collectChannels();
     collectContacts();
+    collectFeatured();
+    collectSoon();
     try {
       await api("/api/admin/settings", {
         method: "POST",
         body: {
+          ...(heroDraft !== undefined ? { hero_data: heroDraft } : {}),
+          featured: featuredDraft.map((p) => ({ id: p.id, featured: p.featured, badge: p.badge })),
+          coming_soon: soonDraft,
           business_name: $("#s-name").value,
           currency: $("#s-currency").value,
           tagline: $("#s-tagline").value,
