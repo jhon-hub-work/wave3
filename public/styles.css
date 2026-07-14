@@ -60,7 +60,7 @@ a:hover { color: #3243c9; }
   color: var(--gold);
 }
 
-.container { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+.container { max-width: 1120px; margin: 0 auto; padding: 0 clamp(20px, 4.5vw, 44px); }
 
 /* ---------- buttons ---------- */
 .btn {
@@ -241,7 +241,7 @@ table.w3 tr:last-child td { border-bottom: none; }
 }
 .topbar-inner {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
-  padding: 13px 20px; max-width: 1180px; margin: 0 auto;
+  padding: 13px clamp(20px, 3.5vw, 34px); max-width: 1180px; margin: 0 auto;
 }
 .logo-text-2 { display: flex; flex-direction: column; line-height: 1; justify-content: center; }
 .logo-text-2 .l1 { font-family: var(--body); font-weight: 800; font-size: 16px; letter-spacing: 0.16em; color: #FFFFFF; }
@@ -278,6 +278,17 @@ a.logo-mark:hover .logo-text-2 { opacity: 0.8; }
 .nav-burger { display: none; }
 .search-bar { border-top: 1px solid var(--border); background: var(--bg-2); }
 
+@media (max-width: 480px) {
+  .topbar-inner { padding-left: 14px; padding-right: 14px; gap: 8px; }
+  .nav-actions { gap: 6px; }
+  .nav-actions #cur-select { padding: 6px 5px; font-size: 11.5px; }
+  .icon-btn { width: 34px; height: 34px; }
+  .logo-mark { gap: 7px; }
+  .logo-mark img { width: 44px; height: 39px; }
+  .logo-text-2 .l1 { font-size: 13.5px; }
+  .logo-text-2 .l2 { font-size: 7px; letter-spacing: 0.4em; }
+}
+
 @media (max-width: 860px) {
   .nav-burger { display: inline-flex; }
   .mainnav {
@@ -309,7 +320,7 @@ a.logo-mark:hover .logo-text-2 { opacity: 0.8; }
 }
 .home-hero-grid {
   display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
-  gap: 40px; align-items: center; padding: 64px 0 56px;
+  gap: 40px; align-items: center; padding-top: 64px; padding-bottom: 56px;
 }
 @media (max-width: 860px) { .home-hero-grid { grid-template-columns: 1fr; padding-top: 44px; } }
 .home-hero h1 { font-size: clamp(44px, 6.6vw, 82px); }
@@ -368,7 +379,7 @@ a.drop-card:hover { box-shadow: 0 12px 34px rgba(20,20,40,0.12); transform: tran
 /* slanted expandable photo strip  /1/2/3/4/  */
 .mv-strip {
   display: flex; gap: 12px; margin-top: 44px; height: 340px;
-  padding: 0 10px; position: relative; z-index: 1;
+  padding: 0 clamp(16px, 3vw, 30px); position: relative; z-index: 1;
 }
 .mv-item {
   flex: 1 1 0; min-width: 0; position: relative; overflow: hidden;
@@ -398,10 +409,15 @@ a.drop-card:hover { box-shadow: 0 12px 34px rgba(20,20,40,0.12); transform: tran
 .mv-story p { color: var(--muted); font-size: 14.5px; line-height: 1.65; max-width: 640px; margin-top: 8px; white-space: pre-line; }
 .mv-story .hint { color: var(--muted-2); font-size: 11.5px; letter-spacing: 0.14em; text-transform: uppercase; margin-top: 14px; }
 @media (max-width: 760px) {
-  .mv-strip { height: 300px; gap: 8px; }
-  .mv-item { transform: skewX(-5deg); }
-  .mv-item img { transform: skewX(5deg) scale(1.1); }
-  .mv-story { transform: skewX(5deg) scale(1.02); padding: 20px 18px; }
+  .mv-strip { height: 300px; gap: 8px; flex-direction: column; }
+  .mv-item { transform: skewX(0deg); border-radius: 12px; }
+  .mv-item img { transform: scale(1.06); }
+  .mv-item:hover:not(.open) img { transform: scale(1.1); }
+  .mv-story { transform: none; padding: 20px 18px; }
+  .mv-strip { height: auto; }
+  .mv-item { height: 96px; flex: none; transition: height 0.7s cubic-bezier(0.65, 0, 0.25, 1), opacity 0.5s ease; }
+  .mv-strip.expanded .mv-item.open { height: 420px; }
+  .mv-strip.expanded .mv-item:not(.open) { height: 0; border-width: 0; }
 }
 
 .stats-strip {
@@ -409,7 +425,7 @@ a.drop-card:hover { box-shadow: 0 12px 34px rgba(20,20,40,0.12); transform: tran
   background: linear-gradient(105deg, #060614 0%, #0a1240 55%, #0c1a5e 100%);
   position: relative; overflow: hidden;
 }
-.stats-inner { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 26px; align-items: center; padding: 30px 0; }
+.stats-inner { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 26px; align-items: center; padding-top: 30px; padding-bottom: 30px; }
 @media (max-width: 860px) { .stats-inner { grid-template-columns: 1fr; } }
 .map-side .eyebrow { color: var(--blue-bright); }
 .map-side h2 { font-size: clamp(22px, 3vw, 32px); color: #fff; margin-top: 4px; }
