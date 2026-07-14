@@ -95,6 +95,44 @@
       #logout-btn { margin-left: auto; }
       main { padding: 20px 16px 60px; }
     }
+
+    /* collapsible settings sections */
+    details.s-sec { padding: 0; overflow: hidden; }
+    details.s-sec > summary {
+      list-style: none; cursor: pointer; padding: 18px 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    details.s-sec > summary::-webkit-details-marker { display: none; }
+    details.s-sec > summary .sec-title { display: flex; flex-direction: column; gap: 2px; }
+    details.s-sec > summary .sec-title h3 { font-size: 17px; }
+    details.s-sec > summary .arrow { color: var(--blue-bright); transition: transform .2s; font-size: 13px; }
+    details.s-sec[open] > summary .arrow { transform: rotate(180deg); }
+    details.s-sec > .sec-body { padding: 4px 24px 22px; border-top: 1px solid var(--border); }
+    details.s-sec > summary:hover { background: rgba(255,255,255,0.02); }
+
+    /* rich text editor */
+    .rt-toolbar {
+      display: flex; flex-wrap: wrap; gap: 4px; padding: 6px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-bottom: none; border-radius: 10px 10px 0 0;
+    }
+    .rt-toolbar button, .rt-toolbar select, .rt-toolbar label.rt-img {
+      background: transparent; border: 1px solid transparent; color: var(--text);
+      min-height: 30px; padding: 2px 9px; border-radius: 6px; cursor: pointer;
+      font-family: var(--body); font-size: 13px; font-weight: 600;
+    }
+    .rt-toolbar button:hover, .rt-toolbar label.rt-img:hover { border-color: var(--border-strong); background: var(--bg-2); }
+    .rt-toolbar select { width: auto; padding: 2px 6px; }
+    .rt-toolbar input[type="color"] { width: 30px; height: 30px; padding: 2px; background: transparent; border: 1px solid transparent; border-radius: 6px; cursor: pointer; }
+    .rt-editor {
+      min-height: 140px; max-height: 480px; overflow-y: auto;
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: 0 0 10px 10px; padding: 14px 16px; font-size: 15px; line-height: 1.65;
+    }
+    .rt-editor:focus { outline: none; border-color: var(--blue); }
+    .rt-editor img { max-width: 100%; border-radius: 8px; }
+    .rt-editor a { text-decoration: underline; }
+    .rt-editor:empty::before { content: attr(data-placeholder); color: var(--muted-2); }
   </style>
 </head>
 <body>
@@ -258,121 +296,139 @@
       <p class="muted small">Everything customers see on the store and payment pages.</p>
 
       <!-- STORE & PRICING -->
-      <div class="card mt-3">
-        <p class="eyebrow">Store &amp; Pricing</p>
-        <h3 style="font-size:18px; margin: 6px 0 12px;">Basics</h3>
-        <div class="field"><label class="field-label" for="s-name">Business name</label><input type="text" id="s-name" /></div>
-        <div class="field"><label class="field-label" for="s-tagline">Tagline</label><input type="text" id="s-tagline" /></div>
-        <div class="field">
-          <label class="field-label" for="s-currency">Currency (display only — prices don't auto-convert)</label>
-          <select id="s-currency">
-            <option value="₱">PHP (₱)</option>
-            <option value="$">USD ($)</option>
-            <option value="USDT">USDT</option>
-          </select>
+      <details class="card mt-3 s-sec" open>
+        <summary>
+          <span class="sec-title"><span class="eyebrow">Store &amp; Pricing</span><h3>Name, currency, shipping, payment window</h3></span>
+          <span class="arrow">▼</span>
+        </summary>
+        <div class="sec-body">
+          <div class="field mt-2"><label class="field-label" for="s-name">Business name</label><input type="text" id="s-name" /></div>
+          <div class="field"><label class="field-label" for="s-tagline">Tagline</label><input type="text" id="s-tagline" /></div>
+          <div class="field">
+            <label class="field-label" for="s-currency">Currency (display only — prices don't auto-convert)</label>
+            <select id="s-currency">
+              <option value="₱">PHP (₱)</option>
+              <option value="$">USD ($)</option>
+              <option value="USDT">USDT</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="s-shipping">Default shipping fee (0 = "to be confirmed", you set it per order)</label>
+            <input type="number" id="s-shipping" min="0" step="1" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="s-window">Payment window (hours) — unpaid orders with no proof auto-expire and release their stock</label>
+            <input type="number" id="s-window" min="1" max="168" step="1" />
+          </div>
+          <button class="btn btn-primary" id="save-store-btn">Save store &amp; pricing</button>
         </div>
-        <div class="field">
-          <label class="field-label" for="s-shipping">Default shipping fee (0 = "to be confirmed", you set it per order)</label>
-          <input type="number" id="s-shipping" min="0" step="1" />
-        </div>
-        <div class="field">
-          <label class="field-label" for="s-window">Payment window (hours) — unpaid orders with no proof auto-expire and release their stock</label>
-          <input type="number" id="s-window" min="1" max="168" step="1" />
-        </div>
-      </div>
+      </details>
 
       <!-- HOMEPAGE -->
-      <div class="card mt-3">
-        <p class="eyebrow">Homepage</p>
-        <h3 style="font-size:18px; margin: 6px 0 12px;">Hero image</h3>
-        <p class="muted small mb-2">The big photo at the top of the homepage. Uploads are stored safely in the database.</p>
-        <div class="flex mb-2" style="flex-wrap:wrap;">
-          <img id="hero-preview" src="/hero.png" alt="Current hero" style="width:120px; height:90px; object-fit:cover; border-radius:8px; border:1px solid var(--border-strong);" />
-          <label class="btn btn-ghost btn-sm" style="cursor:pointer;">Upload new hero image<input type="file" id="hero-file" class="hidden" accept="image/png,image/jpeg,image/webp" /></label>
-          <button class="btn btn-danger btn-sm hidden" id="hero-reset">Reset to default</button>
-        </div>
-        <p class="muted small hidden" id="hero-pending" style="color:var(--amber);">NOT SAVED YET — click "Save all settings" below.</p>
+      <details class="card mt-2 s-sec">
+        <summary>
+          <span class="sec-title"><span class="eyebrow">Homepage</span><h3>Hero image, featured drops, photo stories</h3></span>
+          <span class="arrow">▼</span>
+        </summary>
+        <div class="sec-body">
+          <h3 style="font-size:17px; margin: 14px 0 8px;">Hero image</h3>
+          <p class="muted small mb-2">The big photo at the top of the homepage. Uploads are stored safely in the database.</p>
+          <div class="flex mb-2" style="flex-wrap:wrap;">
+            <img id="hero-preview" src="/hero.png" alt="Current hero" style="width:120px; height:90px; object-fit:cover; border-radius:8px; border:1px solid var(--border-strong);" />
+            <label class="btn btn-ghost btn-sm" style="cursor:pointer;">Upload new hero image<input type="file" id="hero-file" class="hidden" accept="image/png,image/jpeg,image/webp" /></label>
+            <button class="btn btn-danger btn-sm hidden" id="hero-reset">Reset to default</button>
+          </div>
+          <p class="muted small hidden" id="hero-pending" style="color:var(--amber);">NOT SAVED YET — click "Save homepage" below.</p>
 
-        <h3 style="font-size:18px; margin: 18px 0 8px;">Featured drops</h3>
-        <p class="muted small mb-2">Choose which products appear on the homepage and the badge shown on each (e.g. Limited Drop, Best Seller, New).</p>
-        <div id="featured-edit" class="mb-2"></div>
+          <h3 style="font-size:17px; margin: 18px 0 8px;">Featured drops</h3>
+          <p class="muted small mb-2">Every product you create in Inventory appears here automatically — tick the ones to show on the homepage, with a custom badge each (e.g. Limited Drop, Best Seller, New). No limit.</p>
+          <div id="featured-edit" class="mb-2"></div>
 
-        <div class="spread mb-2" style="margin-top:18px;">
-          <h3 style="font-size:18px;">"Coming soon" cards</h3>
-          <button class="btn btn-ghost btn-sm" id="add-soon-btn">+ Add card</button>
-        </div>
-        <div id="soon-edit" class="mb-2"></div>
+          <div class="spread mb-2" style="margin-top:18px;">
+            <h3 style="font-size:17px;">"Coming soon" cards</h3>
+            <button class="btn btn-ghost btn-sm" id="add-soon-btn">+ Add card</button>
+          </div>
+          <div id="soon-edit" class="mb-2"></div>
 
-        <h3 style="font-size:18px; margin: 18px 0 8px;">Photo stories</h3>
-        <p class="muted small mb-2">Shown when a customer clicks one of the 4 photos in the "More than a brand" section.</p>
-        <div class="field">
-          <label class="field-label" for="s-mv1">Photo 1 — trading desk</label>
-          <textarea id="s-mv1" placeholder="The story behind this photo..."></textarea>
+          <h3 style="font-size:17px; margin: 18px 0 8px;">Photo stories</h3>
+          <p class="muted small mb-2">Shown when a customer clicks one of the 4 photos in the "More than a brand" section. Format the text, add colors, links, or pictures.</p>
+          <div class="field"><label class="field-label">Photo 1 — trading desk</label><div class="rt-mount" id="s-mv1" data-min="90"></div></div>
+          <div class="field"><label class="field-label">Photo 2 — mountains</label><div class="rt-mount" id="s-mv2" data-min="90"></div></div>
+          <div class="field"><label class="field-label">Photo 3 — mug</label><div class="rt-mount" id="s-mv3" data-min="90"></div></div>
+          <div class="field"><label class="field-label">Photo 4 — backpack</label><div class="rt-mount" id="s-mv4" data-min="90"></div></div>
+          <button class="btn btn-primary" id="save-home-btn">Save homepage</button>
         </div>
-        <div class="field">
-          <label class="field-label" for="s-mv2">Photo 2 — mountains</label>
-          <textarea id="s-mv2" placeholder="The story behind this photo..."></textarea>
-        </div>
-        <div class="field">
-          <label class="field-label" for="s-mv3">Photo 3 — mug</label>
-          <textarea id="s-mv3" placeholder="The story behind this photo..."></textarea>
-        </div>
-        <div class="field">
-          <label class="field-label" for="s-mv4">Photo 4 — backpack</label>
-          <textarea id="s-mv4" placeholder="The story behind this photo..."></textarea>
-        </div>
-      </div>
+      </details>
 
       <!-- PAGES & COMMUNITY -->
-      <div class="card mt-3">
-        <p class="eyebrow">Pages &amp; Community</p>
-        <h3 style="font-size:18px; margin: 6px 0 12px;">Our Story &amp; links</h3>
-        <div class="field">
-          <label class="field-label" for="s-story">Our Story page (blank line = new paragraph)</label>
-          <textarea id="s-story" style="min-height:180px;" placeholder="Tell your customers where Wave 3 came from..."></textarea>
+      <details class="card mt-2 s-sec">
+        <summary>
+          <span class="sec-title"><span class="eyebrow">Pages &amp; Community</span><h3>Our Story blog, community link</h3></span>
+          <span class="arrow">▼</span>
+        </summary>
+        <div class="sec-body">
+          <div class="field mt-2">
+            <label class="field-label">Our Story page — write it like a blog: style the text, add colors, links, and pictures</label>
+            <div class="rt-mount" id="s-story" data-min="220"></div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="s-discord">Community link (Discord invite — shown as "Community" and "Join the community" on the store)</label>
+            <input type="text" id="s-discord" placeholder="https://discord.gg/..." />
+          </div>
+          <button class="btn btn-primary" id="save-pages-btn">Save pages &amp; community</button>
         </div>
-        <div class="field">
-          <label class="field-label" for="s-discord">Community link (Discord invite — shown as "Community" and "Join the community" on the store)</label>
-          <input type="text" id="s-discord" placeholder="https://discord.gg/..." />
-        </div>
-      </div>
+      </details>
 
       <!-- PAYMENTS -->
-      <div class="card mt-3">
-        <p class="eyebrow">Payments</p>
-        <div class="spread mb-2" style="margin-top:6px;">
-          <h3 style="font-size:18px;">Payment channels</h3>
-          <button class="btn btn-ghost btn-sm" id="add-channel-btn">+ Add channel</button>
+      <details class="card mt-2 s-sec">
+        <summary>
+          <span class="sec-title"><span class="eyebrow">Payments</span><h3>Payment channels, QR codes, instructions</h3></span>
+          <span class="arrow">▼</span>
+        </summary>
+        <div class="sec-body">
+          <div class="spread mb-2" style="margin-top:14px;">
+            <h3 style="font-size:17px;">Payment channels</h3>
+            <button class="btn btn-ghost btn-sm" id="add-channel-btn">+ Add channel</button>
+          </div>
+          <p class="muted small mb-2">Tip: upload the channel's QR code (GCash / Maya / bank app QR) — customers scan it instead of typing account numbers, so no wrong-account mistakes.</p>
+          <div id="channels-edit"></div>
+          <div class="field" style="margin-top:14px;">
+            <label class="field-label" for="s-note">Payment instructions note</label>
+            <textarea id="s-note"></textarea>
+          </div>
+          <button class="btn btn-primary" id="save-pay-btn">Save payments</button>
         </div>
-        <p class="muted small mb-2">Tip: upload the channel's QR code (GCash / Maya / bank app QR) — customers scan it instead of typing account numbers, so no wrong-account mistakes.</p>
-        <div id="channels-edit"></div>
-        <div class="field" style="margin-top:14px;">
-          <label class="field-label" for="s-note">Payment instructions note</label>
-          <textarea id="s-note"></textarea>
-        </div>
-      </div>
+      </details>
 
       <!-- CONTACTS -->
-      <div class="card mt-3">
-        <p class="eyebrow">Contacts</p>
-        <div class="spread mb-2" style="margin-top:6px;">
-          <h3 style="font-size:18px;">Contact channels</h3>
-          <button class="btn btn-ghost btn-sm" id="add-contact-btn">+ Add contact</button>
+      <details class="card mt-2 s-sec">
+        <summary>
+          <span class="sec-title"><span class="eyebrow">Contacts</span><h3>"Message us" buttons</h3></span>
+          <span class="arrow">▼</span>
+        </summary>
+        <div class="sec-body">
+          <div class="spread mb-2" style="margin-top:14px;">
+            <h3 style="font-size:17px;">Contact channels</h3>
+            <button class="btn btn-ghost btn-sm" id="add-contact-btn">+ Add contact</button>
+          </div>
+          <p class="muted small mb-2">Shown as "Message us" buttons on the store and on customers' order pages. Use any channel you like — Messenger (m.me/yourpage), Telegram (t.me/you), Instagram, WhatsApp, etc.</p>
+          <div id="contacts-edit"></div>
+          <button class="btn btn-primary" id="save-contacts-btn">Save contacts</button>
         </div>
-        <p class="muted small mb-2">Shown as "Message us" buttons on the store and on customers' order pages. Use any channel you like — Messenger (m.me/yourpage), Telegram (t.me/you), Instagram, WhatsApp, etc.</p>
-        <div id="contacts-edit"></div>
-      </div>
-
-      <button class="btn btn-primary mt-3" id="save-settings-btn" style="min-width: 220px;">Save all settings</button>
+      </details>
 
       <!-- SECURITY -->
-      <div class="card mt-3">
-        <p class="eyebrow">Security</p>
-        <h3 style="font-size:18px; margin: 6px 0 12px;">Change admin password</h3>
-        <div class="field"><label class="field-label" for="pw-current">Current password</label><input type="password" id="pw-current" autocomplete="current-password" /></div>
-        <div class="field"><label class="field-label" for="pw-next">New password (min 6 characters)</label><input type="password" id="pw-next" autocomplete="new-password" /></div>
-        <button class="btn btn-ghost" id="change-pw-btn">Change password</button>
-      </div>
+      <details class="card mt-2 s-sec">
+        <summary>
+          <span class="sec-title"><span class="eyebrow">Security</span><h3>Change admin password</h3></span>
+          <span class="arrow">▼</span>
+        </summary>
+        <div class="sec-body">
+          <div class="field mt-2"><label class="field-label" for="pw-current">Current password</label><input type="password" id="pw-current" autocomplete="current-password" /></div>
+          <div class="field"><label class="field-label" for="pw-next">New password (min 6 characters)</label><input type="password" id="pw-next" autocomplete="new-password" /></div>
+          <button class="btn btn-ghost" id="change-pw-btn">Change password</button>
+        </div>
+      </details>
     </section>
   </main>
 

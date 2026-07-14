@@ -10,6 +10,9 @@
     .story-body { max-width: 720px; margin-top: 26px; }
     .story-body p { color: var(--muted); font-size: 16.5px; line-height: 1.75; margin-bottom: 18px; }
     .story-body p:first-of-type { color: var(--text); font-size: 18px; }
+    .story-body img { max-width: 100%; height: auto; border-radius: 10px; }
+    .story-body ul { color: var(--muted); margin: 0 0 18px 22px; }
+    .story-body a { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -31,15 +34,19 @@
   <script>
     W3.data.then((shop) => {
       const el = document.getElementById("story-body");
+      const html = (shop.settings.story_html || "").trim();
       const text = (shop.settings.story || "").trim();
-      if (!text) {
+      if (html) {
+        // rich blog content, written in the admin editor (sanitized server-side)
+        el.innerHTML = html;
+      } else if (text) {
+        el.innerHTML = text
+          .split(/\n\s*\n/)
+          .map((p) => `<p>${W3.esc(p).replace(/\n/g, "<br/>")}</p>`)
+          .join("");
+      } else {
         el.innerHTML = '<p class="muted">Our story is being written. Check back soon — the movement continues.</p>';
-        return;
       }
-      el.innerHTML = text
-        .split(/\n\s*\n/)
-        .map((p) => `<p>${W3.esc(p).replace(/\n/g, "<br/>")}</p>`)
-        .join("");
     });
   </script>
 </body>

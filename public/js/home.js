@@ -31,14 +31,14 @@
     }
     grid.innerHTML = cards.join("");
 
-    // movement strip stories (admin-editable)
+    // movement strip stories (admin-editable, rich text; sanitized server-side)
     const stories = shop.settings.movement || [];
     document.querySelectorAll("#mv-strip .mv-item").forEach((item) => {
       const i = Number(item.dataset.i);
-      const text = (stories[i] || "").trim();
+      const raw = (stories[i] || "").trim();
+      const body = !raw ? "" : /</.test(raw) ? `<div class="mv-rich">${raw}</div>` : `<p>${esc(raw)}</p>`;
       item.querySelector(".mv-story").innerHTML =
-        `<h3>${esc(TITLES[i])}</h3>` +
-        (text ? `<p>${esc(text)}</p>` : "") +
+        `<h3>${esc(TITLES[i])}</h3>` + body +
         `<span class="hint">Click anywhere to go back</span>`;
     });
   });

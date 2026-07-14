@@ -718,6 +718,83 @@
     renderChannels();
   });
 
+  // ---------- rich text editor (story + photo stories) ----------
+  function makeRichEditor(mountId) {
+    const mount = document.getElementById(mountId);
+    mount.innerHTML = `
+      <div class="rt-toolbar">
+        <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+        <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+        <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+        <select class="rt-size" title="Text size">
+          <option value="">Size</option>
+          <option value="2">Small</option>
+          <option value="3">Normal</option>
+          <option value="5">Large</option>
+          <option value="6">Heading</option>
+        </select>
+        <input type="color" class="rt-color" value="#000F93" title="Text color" />
+        <button type="button" data-cmd="insertUnorderedList" title="Bullet list">• List</button>
+        <button type="button" class="rt-link" title="Insert link">Link</button>
+        <label class="rt-img" title="Insert picture">Picture<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="hidden rt-img-file" /></label>
+        <button type="button" data-cmd="removeFormat" title="Clear formatting">Clear</button>
+      </div>
+      <div class="rt-editor" contenteditable="true" data-placeholder="Write here…"></div>`;
+    const ed = mount.querySelector(".rt-editor");
+    ed.style.minHeight = (Number(mount.dataset.min) || 140) + "px";
+    const exec = (cmd, val) => { ed.focus(); document.execCommand(cmd, false, val); };
+    // keep the text selection alive when clicking toolbar buttons
+    mount.querySelector(".rt-toolbar").addEventListener("mousedown", (e) => {
+      if (e.target.closest("button")) e.preventDefault();
+    });
+    mount.querySelectorAll("[data-cmd]").forEach((b) => b.addEventListener("click", () => exec(b.dataset.cmd)));
+    mount.querySelector(".rt-size").addEventListener("change", (e) => {
+      if (e.target.value) exec("fontSize", e.target.value);
+      e.target.value = "";
+    });
+    mount.querySelector(".rt-color").addEventListener("input", (e) => exec("foreColor", e.target.value));
+    mount.querySelector(".rt-link").addEventListener("click", () => {
+      const url = prompt("Link URL (https://...):");
+      if (url) exec("createLink", /^https?:/i.test(url) ? url : "https://" + url);
+    });
+    const file = mount.querySelector(".rt-img-file");
+    file.addEventListener("change", () => {
+      const f = file.files[0];
+      if (!f) return;
+      if (f.size > 8 * 1024 * 1024) return toast("Image too large (max 8 MB).", true);
+      const r = new FileReader();
+      r.onload = async () => {
+        try {
+          const res = await api("/api/admin/media", { method: "POST", body: { image: r.result } });
+          exec("insertImage", "/media/" + res.id);
+        } catch (err) {
+          toast(err.message, true);
+        }
+        file.value = "";
+      };
+      r.readAsDataURL(f);
+    });
+    return {
+      get: () => {
+        const html = ed.innerHTML.trim();
+        return html === "<br>" || html === "<div><br></div>" ? "" : html;
+      },
+      set: (html) => { ed.innerHTML = html || ""; }
+    };
+  }
+  const editors = {
+    story: makeRichEditor("s-story"),
+    mv1: makeRichEditor("s-mv1"),
+    mv2: makeRichEditor("s-mv2"),
+    mv3: makeRichEditor("s-mv3"),
+    mv4: makeRichEditor("s-mv4")
+  };
+  // legacy plain-text content -> simple HTML
+  function plainToHtml(text) {
+    if (!text || /</.test(text)) return text || "";
+    return text.split(/\n\s*\n/).map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("");
+  }
+
   // homepage drafts
   let heroDraft; // undefined = untouched, "" = reset to default, dataURL = new upload
   let featuredDraft = [];
@@ -799,9 +876,9 @@
     $("#s-window").value = d.settings.payment_window_hours;
     $("#s-note").value = d.settings.payment_note;
     $("#s-discord").value = d.settings.discord || "";
-    $("#s-story").value = d.settings.story || "";
+    editors.story.set(d.settings.story_html || plainToHtml(d.settings.story));
     const mv = d.settings.movement || [];
-    for (const i of [1, 2, 3, 4]) $("#s-mv" + i).value = mv[i - 1] || "";
+    for (const i of [1, 2, 3, 4]) editors["mv" + i].set(plainToHtml(mv[i - 1] || ""));
     channelsDraft = d.payment_channels;
     renderChannels();
     contactsDraft = d.contact_channels || [];
@@ -816,39 +893,65 @@
     renderSoon();
   }
 
-  $("#save-settings-btn").addEventListener("click", async () => {
-    collectChannels();
-    collectContacts();
-    collectFeatured();
-    collectSoon();
+  // per-section saves — each button posts ONLY its own section's fields
+  async function saveSection(btn, body, after) {
     try {
-      await api("/api/admin/settings", {
-        method: "POST",
-        body: {
-          ...(heroDraft !== undefined ? { hero_data: heroDraft } : {}),
-          featured: featuredDraft.map((p) => ({ id: p.id, featured: p.featured, badge: p.badge })),
-          coming_soon: soonDraft,
-          business_name: $("#s-name").value,
-          currency: $("#s-currency").value,
-          tagline: $("#s-tagline").value,
-          shipping_fee: Number($("#s-shipping").value),
-          payment_window_hours: Number($("#s-window").value),
-          payment_note: $("#s-note").value,
-          discord_url: $("#s-discord").value,
-          story_text: $("#s-story").value,
-          movement_story_1: $("#s-mv1").value,
-          movement_story_2: $("#s-mv2").value,
-          movement_story_3: $("#s-mv3").value,
-          movement_story_4: $("#s-mv4").value,
-          payment_channels: channelsDraft,
-          contact_channels: contactsDraft
-        }
-      });
-      toast("Settings saved.");
-      loadSettings(); // refresh so new QR files show their saved state
+      btn.disabled = true;
+      await api("/api/admin/settings", { method: "POST", body });
+      toast("Saved.");
+      if (after) after();
     } catch (err) {
       toast(err.message, true);
+    } finally {
+      btn.disabled = false;
     }
+  }
+
+  $("#save-store-btn").addEventListener("click", (e) =>
+    saveSection(e.target, {
+      business_name: $("#s-name").value,
+      currency: $("#s-currency").value,
+      tagline: $("#s-tagline").value,
+      shipping_fee: Number($("#s-shipping").value),
+      payment_window_hours: Number($("#s-window").value)
+    })
+  );
+
+  $("#save-home-btn").addEventListener("click", (e) => {
+    collectFeatured();
+    collectSoon();
+    saveSection(e.target, {
+      ...(heroDraft !== undefined ? { hero_data: heroDraft } : {}),
+      featured: featuredDraft.map((p) => ({ id: p.id, featured: p.featured, badge: p.badge })),
+      coming_soon: soonDraft,
+      movement_story_1: editors.mv1.get(),
+      movement_story_2: editors.mv2.get(),
+      movement_story_3: editors.mv3.get(),
+      movement_story_4: editors.mv4.get()
+    }, () => {
+      heroDraft = undefined;
+      $("#hero-pending").classList.add("hidden");
+    });
+  });
+
+  $("#save-pages-btn").addEventListener("click", (e) =>
+    saveSection(e.target, {
+      story_html: editors.story.get(),
+      discord_url: $("#s-discord").value
+    })
+  );
+
+  $("#save-pay-btn").addEventListener("click", (e) => {
+    collectChannels();
+    saveSection(e.target, {
+      payment_channels: channelsDraft,
+      payment_note: $("#s-note").value
+    }, () => loadSettings()); // refresh so new QR files show their saved state
+  });
+
+  $("#save-contacts-btn").addEventListener("click", (e) => {
+    collectContacts();
+    saveSection(e.target, { contact_channels: contactsDraft });
   });
 
   $("#change-pw-btn").addEventListener("click", async () => {

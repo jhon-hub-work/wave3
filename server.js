@@ -67,6 +67,7 @@ async function publicSettings() {
     payment_note: s.payment_note || "",
     payment_window_hours: Number.isFinite(wh) && wh > 0 ? wh : 24,
     story: s.story_text || "",
+    story_html: s.story_html || "",
     discord: s.discord_url || "",
     hero: s.hero_image || "",
     coming_soon: parseJsonSetting(s.coming_soon || '["Wave 3 Hoodie","Wave 3 Pro Jersey","Wave 3 Tumbler"]'),
@@ -74,6 +75,15 @@ async function publicSettings() {
     // units per 1 USD — clients convert: amount / fx[base] * fx[target]
     fx: { PHP: fx.phpPerUsd, USD: 1, USDT: 1 }
   };
+}
+
+// strip anything executable from admin-authored rich text (story / photo stories)
+function sanitizeHtml(html) {
+  return String(html)
+    .replace(/<\s*(script|style|iframe|object|embed)[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi, "")
+    .replace(/<\s*(script|iframe|object|embed)[^>]*\/?>/gi, "")
+    .replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    .replace(/(href|src)\s*=\s*(["']?)\s*javascript:[^"'>\s]*\2/gi, '$1="#"');
 }
 
 function parseJsonSetting(value) {
@@ -879,9 +889,11 @@ app.post("/api/admin/settings", requireAdmin, wrap(async (req, res) => {
   }
   if (b.payment_note !== undefined) await db.setSetting("payment_note", String(b.payment_note));
   if (b.story_text !== undefined) await db.setSetting("story_text", String(b.story_text).slice(0, 20000));
+  if (b.story_html !== undefined)
+    await db.setSetting("story_html", sanitizeHtml(String(b.story_html).slice(0, 300000)));
   for (const i of [1, 2, 3, 4])
     if (b["movement_story_" + i] !== undefined)
-      await db.setSetting("movement_story_" + i, String(b["movement_story_" + i]).slice(0, 2000));
+      await db.setSetting("movement_story_" + i, sanitizeHtml(String(b["movement_story_" + i]).slice(0, 20000)));
   // hero image: base64 upload replaces it, empty string resets to the default
   if (b.hero_data !== undefined) {
     const old = await db.getSetting("hero_image", "");
@@ -966,6 +978,16 @@ app.post("/api/admin/settings", requireAdmin, wrap(async (req, res) => {
     await db.setSetting("contact_channels", JSON.stringify(cleaned));
   }
   res.json({ ok: true });
+}));
+
+// upload an image for rich-text content (story / photo stories); served at /media/:id
+app.post("/api/admin/media", requireAdmin, wrap(async (req, res) => {
+  const image = String((req.body || {}).image || "");
+  const m = image.match(/^data:image\/(png|jpe?g|webp|gif);base64,(.+)$/);
+  if (!m) return res.status(400).json({ error: "Please upload a PNG, JPG, WEBP, or GIF image." });
+  if (Buffer.from(m[2], "base64").length > 8 * 1024 * 1024)
+    return res.status(400).json({ error: "Image too large (max 8 MB)." });
+  res.json({ id: await db.saveMedia(image) });
 }));
 
 app.post("/api/admin/password", requireAdmin, wrap(async (req, res) => {
