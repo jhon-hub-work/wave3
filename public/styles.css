@@ -442,8 +442,12 @@ a.drop-card:hover { box-shadow: 0 12px 34px rgba(20,20,40,0.12); transform: tran
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 @media (max-width: 860px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
 .stat-cell { text-align: center; padding: 8px 10px; }
-.stat-cell .v { font-family: var(--display); font-size: 30px; color: var(--text); }
-.stat-cell .v .accent { color: var(--blue-bright); }
+.stat-cell .v { font-family: var(--display); font-size: 30px; color: var(--text); display: flex; align-items: center; justify-content: center; gap: 8px; }
+.stat-cell .v .accent { color: #4a6bff; }
+.discord-neon {
+  color: #4a6bff; flex: none;
+  filter: drop-shadow(0 0 5px rgba(74, 107, 255, 0.9)) drop-shadow(0 0 14px rgba(43, 80, 255, 0.55));
+}
 .stat-cell .l { font-size: 12px; color: var(--muted); margin-top: 4px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; }
 
 /* ---------- shop grid + detail ---------- */

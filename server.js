@@ -54,6 +54,18 @@ async function getFx() {
   return fxCache;
 }
 
+// homepage "items sold" ticks up only when a milestone is crossed
+const SOLD_MILESTONES = [50, 100, 500, 1000, 5000, 10000, 100000, 1000000, 10000000];
+async function soldMilestone() {
+  const r = await db.get(
+    `SELECT COALESCE(SUM(oi.qty), 0) AS n FROM order_items oi
+     JOIN orders o ON o.id = oi.order_id WHERE o.status IN ('paid','shipped')`
+  );
+  let m = SOLD_MILESTONES[0];
+  for (const t of SOLD_MILESTONES) if (r.n >= t) m = t;
+  return m;
+}
+
 async function publicSettings() {
   const s = await db.allSettingsMap();
   const fx = await getFx();
@@ -70,6 +82,7 @@ async function publicSettings() {
     story_html: s.story_html || "",
     discord: s.discord_url || "",
     hero: s.hero_image || "",
+    sold_milestone: await soldMilestone(),
     coming_soon: parseJsonSetting(s.coming_soon || '["Wave 3 Hoodie","Wave 3 Pro Jersey","Wave 3 Tumbler"]'),
     movement: [1, 2, 3, 4].map((i) => s["movement_story_" + i] || ""),
     // units per 1 USD — clients convert: amount / fx[base] * fx[target]

@@ -7,6 +7,11 @@
     if (shop.settings.hero)
       document.getElementById("hero-img").src = "/media/" + encodeURIComponent(shop.settings.hero);
 
+    // "shirts sold" milestone counter (50, 100, 500, 1000, ... from real sales)
+    const sold = Number(shop.settings.sold_milestone) || 50;
+    document.getElementById("stat-sold").textContent =
+      sold >= 1e6 ? (sold / 1e6) + "M" : sold.toLocaleString("en-PH");
+
     const grid = document.getElementById("drop-grid");
     const esc = W3.esc;
     const cards = [];
