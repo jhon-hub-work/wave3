@@ -96,6 +96,25 @@
     else if (currentPage === "settings") loadSettings();
   }
 
+  // ---------- privacy mode: blur money amounts (e.g. for screenshots) ----------
+  const EYE_ON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const EYE_OFF = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 8 10 8a18.5 18.5 0 0 1-2.16 3.19M6.61 6.61A13.53 13.53 0 0 0 2 12s3.5 8 10 8a9.74 9.74 0 0 0 5.39-1.61M2 2l20 20"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/></svg>';
+  const pm = (n) => `<span class="pmask">${money(n)}</span>`;
+  function applyPrivacy(on) {
+    document.body.classList.toggle("privacy", on);
+    localStorage.setItem("w3privacy", on ? "1" : "");
+    for (const id of ["eye-dash", "eye-money"]) {
+      const b = $("#" + id);
+      if (b) {
+        b.innerHTML = on ? EYE_OFF : EYE_ON;
+        b.title = on ? "Show amounts" : "Hide amounts (privacy)";
+      }
+    }
+  }
+  $("#eye-dash").addEventListener("click", () => applyPrivacy(!document.body.classList.contains("privacy")));
+  $("#eye-money").addEventListener("click", () => applyPrivacy(!document.body.classList.contains("privacy")));
+  applyPrivacy(localStorage.getItem("w3privacy") === "1");
+
   // ---------- dashboard ----------
   async function loadDashboard() {
     const d = await api("/api/admin/overview");
@@ -104,9 +123,9 @@
       <div class="stat amber"><div class="lbl">To verify</div><div class="num">${d.proof}</div></div>
       <div class="stat"><div class="lbl">Awaiting payment</div><div class="num">${d.pending}</div></div>
       <div class="stat blue"><div class="lbl">Stock remaining</div><div class="num">${d.stock_total}</div></div>
-      <div class="stat green"><div class="lbl">Income</div><div class="num">${money(d.income)}</div></div>
-      <div class="stat red"><div class="lbl">Expenses</div><div class="num">${money(d.expense)}</div></div>
-      <div class="stat ${d.profit >= 0 ? "green" : "red"}"><div class="lbl">Profit</div><div class="num">${money(d.profit)}</div></div>`;
+      <div class="stat green"><div class="lbl">Income</div><div class="num">${pm(d.income)}</div></div>
+      <div class="stat red"><div class="lbl">Expenses</div><div class="num">${pm(d.expense)}</div></div>
+      <div class="stat ${d.profit >= 0 ? "green" : "red"}"><div class="lbl">Profit</div><div class="num">${pm(d.profit)}</div></div>`;
 
     $("#dash-low-stock").innerHTML = d.low_stock.length
       ? `<div class="card" style="border-color:#6b511d">
@@ -515,20 +534,20 @@
     const soldRows = d.sold
       .map(
         (s) =>
-          `<tr><td>${esc(s.product_name)}</td><td>${esc(s.size)}</td><td style="text-align:right">${s.qty}</td><td style="text-align:right">${money(s.amount)}</td></tr>`
+          `<tr><td>${esc(s.product_name)}</td><td>${esc(s.size)}</td><td style="text-align:right">${s.qty}</td><td style="text-align:right">${pm(s.amount)}</td></tr>`
       )
       .join("");
     const catRows = d.by_category
       .map(
         (c) =>
-          `<tr><td><span class="badge ${c.type === "income" ? "badge-paid" : "badge-cancelled"}">${esc(c.category)}</span></td><td class="muted small">${c.n} entr${c.n > 1 ? "ies" : "y"}</td><td style="text-align:right" class="${c.type === "income" ? "money-pos" : "money-neg"}">${c.type === "income" ? "+" : "−"}${money(c.total)}</td></tr>`
+          `<tr><td><span class="badge ${c.type === "income" ? "badge-paid" : "badge-cancelled"}">${esc(c.category)}</span></td><td class="muted small">${c.n} entr${c.n > 1 ? "ies" : "y"}</td><td style="text-align:right" class="${c.type === "income" ? "money-pos" : "money-neg"}">${c.type === "income" ? "+" : "−"}${pm(c.total)}</td></tr>`
       )
       .join("");
     $("#rep-out").innerHTML = `
       <div class="stat-grid">
-        <div class="stat green"><div class="lbl">Gross sales</div><div class="num">${money(d.gross_sales)}</div></div>
-        <div class="stat red"><div class="lbl">Expenses</div><div class="num">${money(d.expenses)}</div></div>
-        <div class="stat ${d.profit >= 0 ? "green" : "red"}"><div class="lbl">Profit</div><div class="num">${money(d.profit)}</div></div>
+        <div class="stat green"><div class="lbl">Gross sales</div><div class="num">${pm(d.gross_sales)}</div></div>
+        <div class="stat red"><div class="lbl">Expenses</div><div class="num">${pm(d.expenses)}</div></div>
+        <div class="stat ${d.profit >= 0 ? "green" : "red"}"><div class="lbl">Profit</div><div class="num">${pm(d.profit)}</div></div>
         <div class="stat blue"><div class="lbl">Orders paid</div><div class="num">${d.orders_paid}</div></div>
         <div class="stat blue"><div class="lbl">Items sold</div><div class="num">${d.items_sold}</div></div>
       </div>
@@ -550,10 +569,10 @@
     runReport().catch(() => {});
     const d = await api("/api/admin/transactions");
     $("#money-stats").innerHTML = `
-      <div class="stat green"><div class="lbl">Merch Sales</div><div class="num">${money(d.merch_sales)}</div></div>
-      <div class="stat blue"><div class="lbl">Shipping Fee Collected</div><div class="num">${money(d.shipping_collected)}</div></div>
-      <div class="stat red"><div class="lbl">Total Expenses</div><div class="num">${money(d.expense)}</div></div>
-      <div class="stat ${d.profit >= 0 ? "green" : "red"}"><div class="lbl">Net Profit</div><div class="num">${money(d.profit)}</div></div>`;
+      <div class="stat green"><div class="lbl">Merch Sales</div><div class="num">${pm(d.merch_sales)}</div></div>
+      <div class="stat blue"><div class="lbl">Shipping Fee Collected</div><div class="num">${pm(d.shipping_collected)}</div></div>
+      <div class="stat red"><div class="lbl">Total Expenses</div><div class="num">${pm(d.expense)}</div></div>
+      <div class="stat ${d.profit >= 0 ? "green" : "red"}"><div class="lbl">Net Profit</div><div class="num">${pm(d.profit)}</div></div>`;
     $("#tx-table tbody").innerHTML =
       d.transactions
         .map(
@@ -562,7 +581,7 @@
           <td class="muted small" style="white-space:nowrap">${esc(t.tx_date)}</td>
           <td><span class="badge ${t.type === "income" ? "badge-paid" : "badge-cancelled"}">${esc(t.category)}</span></td>
           <td>${esc(t.description)}</td>
-          <td style="text-align:right" class="${t.type === "income" ? "money-pos" : "money-neg"}">${t.type === "income" ? "+" : "−"}${money(t.amount)}</td>
+          <td style="text-align:right" class="${t.type === "income" ? "money-pos" : "money-neg"}">${t.type === "income" ? "+" : "−"}${pm(t.amount)}</td>
           <td style="text-align:right"><button class="btn btn-danger btn-sm tx-del" data-id="${t.id}" aria-label="Delete transaction">✕</button></td>
         </tr>`
         )

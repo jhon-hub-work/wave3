@@ -96,6 +96,11 @@
       main { padding: 20px 16px 60px; }
     }
 
+    /* privacy mode: blur money amounts (for screenshots) */
+    body.privacy .pmask { filter: blur(10px); user-select: none; }
+    .pmask { transition: filter .25s; border-radius: 6px; }
+    .eye-toggle { min-width: 40px; }
+
     /* collapsible settings sections */
     details.s-sec { padding: 0; overflow: hidden; }
     details.s-sec > summary {
@@ -187,7 +192,10 @@
   <main id="main">
     <!-- DASHBOARD -->
     <section id="page-dashboard">
-      <h1 class="page-title">Dashboard</h1>
+      <div class="spread">
+        <h1 class="page-title">Dashboard</h1>
+        <button class="btn btn-ghost btn-sm eye-toggle" id="eye-dash" title="Hide amounts (privacy)" aria-label="Toggle amount privacy"></button>
+      </div>
       <p class="muted small">What's happening in your shop right now.</p>
       <div class="stat-grid" id="dash-stats"></div>
       <div class="mt-3" id="dash-low-stock"></div>
@@ -230,7 +238,10 @@
 
     <!-- MONEY -->
     <section id="page-money" class="hidden">
-      <h1 class="page-title">Money</h1>
+      <div class="spread">
+        <h1 class="page-title">Money</h1>
+        <button class="btn btn-ghost btn-sm eye-toggle" id="eye-money" title="Hide amounts (privacy)" aria-label="Toggle amount privacy"></button>
+      </div>
       <p class="muted small">Sales are logged automatically when you mark orders paid. Add your expenses here.</p>
       <div class="stat-grid" id="money-stats"></div>
       <div class="card mt-3">
