@@ -22,18 +22,26 @@ orders, payments, and every page of content.
 
 ## Project preview
 
-_Screenshots live in [`docs/screenshots/`](./docs/screenshots)._
+**Storefront**
 
 | | |
 |---|---|
-| ![Home page](docs/screenshots/home.png) | ![Product page](docs/screenshots/product.png) |
+| ![Home page](docs/screenshots/home.jpg) | ![Product page](docs/screenshots/product.jpg) |
 | **Home page** | **Product page** |
-| ![Shopping cart](docs/screenshots/cart.png) | ![Checkout](docs/screenshots/checkout.png) |
+| ![Shopping cart](docs/screenshots/cart.jpg) | ![Checkout](docs/screenshots/checkout.jpg) |
 | **Shopping cart** | **Checkout** |
-| ![Admin dashboard](docs/screenshots/dashboard.png) | ![Reports](docs/screenshots/reports.png) |
-| **Admin dashboard** | **Reports &amp; export** |
-| ![Blog editor](docs/screenshots/blog-editor.png) | ![Receipt / order tracking](docs/screenshots/order-tracking.png) |
-| **Blog editor** | **Receipt / order tracking** |
+
+**Admin CMS**
+
+| | |
+|---|---|
+| ![Admin dashboard](docs/screenshots/dashboard.jpg) | ![Inventory management](docs/screenshots/inventory.jpg) |
+| **Dashboard** | **Inventory management** |
+| ![Product management](docs/screenshots/product-management.jpg) | ![Order &amp; payment verification](docs/screenshots/order-verification.jpg) |
+| **Product management** | **Order &amp; payment verification** |
+
+> Customer details in the admin screenshots are intentionally blurred — this repo is public.
+> The [full case study](https://wave3-portfolio.netlify.app) has the complete gallery, including mobile views.
 
 ## Features
 
