@@ -3,7 +3,8 @@
 **A complete custom e-commerce + business-management platform for a Philippine streetwear brand.**
 Custom storefront, a fully custom CMS, real-time inventory, and payment operations — built from scratch, end to end.
 
-🔗 **Live:** [wave3collectiveph.com](https://wave3collectiveph.com)
+🔗 **Live site:** [wave3collectiveph.com](https://wave3collectiveph.com)
+📄 **Full case study** (engineering decisions, business impact, and results): [wave3-portfolio.netlify.app](https://wave3-portfolio.netlify.app)
 
 > No Shopify. No WordPress. No Wix. No templates. Every line is custom.
 
