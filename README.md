@@ -1,7 +1,7 @@
 # Wave3 Collective PH
 
-**A complete custom e-commerce + business-management platform for a Philippine streetwear brand.**
-Custom storefront, a fully custom CMS, real-time inventory, and payment operations — built from scratch, end to end.
+**A production e-commerce platform and custom CMS, built from scratch for a real Philippine streetwear brand — a custom alternative to Shopify, shaped around how the owner actually runs the business.**
+Storefront, real-time inventory, and payment operations, run end to end by the owner without touching code.
 
 🔗 **Live site:** [wave3collectiveph.com](https://wave3collectiveph.com)
 📄 **Full case study** (engineering decisions, business impact, and results): [wave3-portfolio.netlify.app](https://wave3-portfolio.netlify.app)
@@ -10,15 +10,25 @@ Custom storefront, a fully custom CMS, real-time inventory, and payment operatio
 
 ---
 
+> **Outcome:** Version 1 shipped to production and **sold out its first product batch** — real
+> customers, real payments, real fulfillment. The owner runs the entire business through the CMS,
+> day to day, with no developer in the loop.
+
+## Why this project exists
+
+A hosted platform like Shopify could technically sell shirts — but it wasn't the right fit for how
+this business runs, for a few concrete reasons:
+
+- **Manual payment reality.** Sales run on GCash / bank transfer with a payment-proof screenshot verified by hand — a workflow hosted checkouts aren't built around. Wave3 makes it first-class: reserve stock → upload proof → verify → approve, with a payment window that auto-expires unpaid orders and restocks them.
+- **Launch before registration.** Platform fees and payment-gateway onboarding assume a registered business; the manual workflow let the store launch and sell *first*, with automated gateways designed in as a later drop-in.
+- **Brand over template.** The storefront had to carry the brand's story and voice, not live inside a theme.
+- **Total control, no lock-in.** Products, pricing, inventory, content, and reporting all live in a CMS the owner operates directly — no monthly platform fees, no developer in the loop.
+
 ## What it is
 
 This isn't a website — it's the operating system for a small brand. The owner runs the entire
 business through a purpose-built admin CMS without touching code: products, pricing, inventory,
 orders, payments, and every page of content.
-
-> **Outcome:** Version 1 shipped to production and **sold out its first product batch** — real
-> customers, real payments, real fulfillment. The owner now operates the entire business through
-> the CMS with no developer in the loop.
 
 ## Project preview
 
@@ -97,6 +107,22 @@ flowchart LR
     end
     API -.->|"env vars"| DB
 ```
+
+## Engineering decisions
+
+This project intentionally avoids frameworks and external services unless they clearly earn their
+place. Each choice below traded a "default" option for less operational complexity at this scale —
+without boxing in future growth:
+
+| Chosen | Over | Why |
+|---|---|---|
+| Vanilla JavaScript | React / SPA framework | No shared, stateful views to justify the build tooling and bundle weight |
+| SQLite / Turso | PostgreSQL | A small catalog on a single service doesn't need a separate DB server; Turso keeps it distributed and free |
+| Database-backed media | S3 / object storage | Avoids a paid dependency and survives the host's ephemeral disk (detail below) |
+| Single service | Microservices | One deployable unit is simpler to reason about, test, and operate solo |
+| Session cookies | JWT / OAuth stack | One admin user — a signed session is enough; no third-party identity to integrate |
+
+The guiding rule: reduce moving parts while keeping the door open to scale.
 
 ## Architecture highlights
 
@@ -179,21 +205,46 @@ are in [`DEPLOY.md`](./DEPLOY.md).
 ## Project structure
 
 ```
-server.js        HTTP layer — every REST route, auth guard, and page-serving handler
-db.js            Data layer — schema, seeds, idempotent migrations, and all query helpers
-public/          Everything the browser gets — storefront + admin, no build step
-  *.html         One file per page (home, shop, cart, order, story, track, admin)
-  styles.css     Shared design system
-  js/            Page controllers — nav (shared), home, shop, cart, order, admin
-render.yaml      Render deployment blueprint (build + start + env)
-DEPLOY.md        Step-by-step production setup (Render + Turso + DNS)
-docs/            Screenshots and supporting docs
+Backend
+  server.js        HTTP layer — every REST route, auth guard, page-serving handler
+  db.js            Data layer — schema, seeds, idempotent migrations, query helpers
+
+Frontend  (public/ — shipped as-is, no build step)
+  *.html           One file per page: home, shop, cart, order, story, track, admin
+  styles.css       Shared design system
+  js/              Page controllers — nav (shared), home, shop, cart, order, admin
+
+Infrastructure
+  render.yaml      Render blueprint (build + start + env)
+
+Documentation
+  DEPLOY.md        Step-by-step production setup (Render + Turso + DNS)
+  docs/            Screenshots and supporting docs
 ```
 
 Two files hold the whole backend: `server.js` (what the web exposes) and `db.js` (what the data
 does). The frontend ships as static files with no bundler — what you read is what runs.
 
+## Future improvements
+
+Deliberately out of scope at current scale — the architecture leaves room for each without a rewrite:
+
+- Move database-backed media to S3 / R2 once the catalog and traffic justify object storage
+- Redis-backed reservation queues for high-concurrency drops
+- Background workers for FX refresh, order expiries, and report generation
+- JWT / OAuth if multi-user admin or customer accounts arrive
+- Containerized deployment (Docker) for portability beyond the current host
+
+_Product-facing roadmap — payment gateway, customer accounts, email — lives in the [case study](https://wave3-portfolio.netlify.app)._
+
+## Lessons learned
+
+- **Business workflows are harder than the UI.** The order lifecycle, stock reservations, and bookkeeping consistency took more design than any screen.
+- **Inventory correctness beats flashy tech.** The most valuable engineering was guaranteeing two buyers can't purchase the same last unit.
+- **Deployment constraints shape architecture.** An ephemeral free-tier disk is *why* media lives in the database — the environment drove the design, not the other way around.
+- **Simplicity is a feature.** Fewer moving parts keeps the owner-facing system reliable and maintainable solo.
+
 ---
 
-Designed, built, deployed, and documented by **Jhon Buerano** — self-taught full-stack developer.
+Designed, built, deployed, and documented by **Jhon Buerano**.
 [LinkedIn](https://www.linkedin.com/in/jhon-mycho-buerano)
