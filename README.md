@@ -1,10 +1,29 @@
-# Wave3 Collective PH
+<h1 align="center">Wave3 Collective PH</h1>
 
-**A production e-commerce platform and custom CMS, built from scratch for a real Philippine streetwear brand — a custom alternative to Shopify, shaped around how the owner actually runs the business.**
-Storefront, real-time inventory, and payment operations, run end to end by the owner without touching code.
+<p align="center">
+  <strong>A production e-commerce platform and custom CMS, built from scratch for a real Philippine streetwear brand.</strong><br/>
+  A custom alternative to Shopify, shaped around how the owner actually runs the business —
+  storefront, real-time inventory, and payment operations, run end to end without touching code.
+</p>
 
-🔗 **Live site:** [wave3collectiveph.com](https://wave3collectiveph.com)
-📄 **Full case study** (engineering decisions, business impact, and results): [wave3-portfolio.netlify.app](https://wave3-portfolio.netlify.app)
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-1a1a1a?style=flat-square&logo=node.js&logoColor=8CC84B" alt="Node.js"/>
+  <img src="https://img.shields.io/badge/Express-1a1a1a?style=flat-square&logo=express&logoColor=white" alt="Express"/>
+  <img src="https://img.shields.io/badge/Vanilla_JS-1a1a1a?style=flat-square&logo=javascript&logoColor=F7DF1E" alt="Vanilla JS"/>
+  <img src="https://img.shields.io/badge/Turso_SQLite-1a1a1a?style=flat-square&logo=sqlite&logoColor=003B57" alt="Turso"/>
+  <img src="https://img.shields.io/badge/Render-1a1a1a?style=flat-square&logo=render&logoColor=white" alt="Render"/>
+  <img src="https://img.shields.io/badge/status-in_production-1F883D?style=flat-square" alt="In production"/>
+</p>
+
+<p align="center">
+  <a href="https://wave3collectiveph.com"><strong>Live site</strong></a> ·
+  <a href="https://wave3-portfolio.netlify.app"><strong>Full case study</strong></a> ·
+  <a href="./DEPLOY.md">Deployment guide</a>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/home.jpg" alt="Wave3 Collective PH storefront" width="100%"/>
+</p>
 
 > No Shopify. No WordPress. No Wix. No templates. Every line is custom.
 
